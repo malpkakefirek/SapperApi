@@ -1,4 +1,3 @@
-import binascii
 import json
 import os
 import random

@@ -1,0 +1,9 @@
+{
+    "functions": {
+        "api/index.py": {
+            "runtime": "python3.10",
+            "memory": 128
+        }
+    }
+}
+  
