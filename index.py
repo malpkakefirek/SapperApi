@@ -10,7 +10,6 @@ import psycopg2
 from bitstring import BitArray
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
-from waitress import serve
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -855,5 +854,3 @@ def create_game():
     except Exception as e:
         cursor.close()
         return jsonify({'error': str(e)}), 500
-
-serve(app, host="0.0.0.0", port=8080)
