@@ -716,6 +716,7 @@ def click_tile():
             thread.start()
 
             tiles[tile_id]['value'] = 10 # Blow up mine visually
+            tiles[tile_id]['hidden'] = False
             game_data['tiles'] = tiles
             return jsonify({
                 'type': "loss", 
