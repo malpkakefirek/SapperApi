@@ -18,13 +18,17 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 encoding = 'sha512'
 iterations = 450959
 
-conn = psycopg2.connect(
-    dbname='postgres',
-    user='postgres',
-    password=os.environ['DB_PASSWORD'],
-    host=os.environ['DB_HOST'],
-    port=5432
-)
+def connect():
+    conn = psycopg2.connect(
+        dbname='postgres',
+        user='postgres',
+        password=os.environ['DB_PASSWORD'],
+        host=os.environ['DB_HOST'],
+        port=5432
+    )
+    return conn
+
+conn = connect()
 
 # FUNCTIONS
 
@@ -157,6 +161,10 @@ def health():
     start1 = time()
     try:
         cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
         sql = "INSERT INTO test (value) VALUES (%s)"
         values = ('ABX',)
         cursor.execute(sql, values)
@@ -200,7 +208,11 @@ def login():
         return jsonify({"type":"fail", "reason":"invalid password length"}), 200
 
     
-    cursor = conn.cursor()
+    try:
+        cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
     try:
         sql = "SELECT uuid, password_hash, salt, username, xp, bp_xp, coins, gems \
         FROM users WHERE email = %s"
@@ -286,6 +298,10 @@ def register():
 
     try:
         cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
         sql = "SELECT uuid FROM users WHERE email = %s"
         values = (email, )
         cursor.execute(sql, values)
@@ -360,6 +376,10 @@ def logout():
     
     try:
         cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
         sql = "DELETE FROM sessions WHERE session_id = %s"
         values = (session_id, )
         cursor.execute(sql, values)
@@ -377,6 +397,10 @@ def logout():
 def get_all_skins():
     try:
         cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
         sql = "SELECT * FROM skins"
         cursor.execute(sql)
         skins = cursor.fetchall()
@@ -404,6 +428,10 @@ def get_user_skins():
     session_id = request.json['session_id']
     try:
         cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
         sql = "SELECT user_id FROM sessions WHERE session_id = %s"
         values = (session_id,)
         cursor.execute(sql, values)
@@ -459,6 +487,10 @@ def get_balance():
 
     try:
         cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
         sql = "SELECT user_id FROM sessions WHERE session_id = %s"
         values = (session_id,)
         cursor.execute(sql, values)
@@ -497,6 +529,10 @@ def buy_gems():
 
     try:
         cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
         sql = "SELECT user_id FROM sessions WHERE session_id = %s"
         values = (session_id,)
         cursor.execute(sql, values)
@@ -539,6 +575,10 @@ def buy_skin():
 
     try:
         cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
         sql = "SELECT user_id FROM sessions WHERE session_id = %s"
         values = (session_id,)
         cursor.execute(sql, values)
@@ -608,6 +648,10 @@ def click_tile():
 
     try:
         cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
         sql = "SELECT user_id FROM sessions WHERE session_id = %s"
         values = (session_id,)
         cursor.execute(sql, values)
@@ -807,6 +851,10 @@ def create_game():
 
     try:
         cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
         sql = "SELECT user_id FROM sessions WHERE session_id = %s"
         values = (session_id,)
         cursor.execute(sql, values)
