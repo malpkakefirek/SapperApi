@@ -393,6 +393,36 @@ def logout():
         cursor.close()
         return jsonify({'error': str(e)}), 500
 
+@app.route('/get_user_id')
+@cross_origin()
+def get_user_id():
+    session_id = request.json['session_id']
+    try:
+        cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
+        sql = "SELECT user_id FROM sessions WHERE session_id = %s"
+        values = (session_id,)
+        cursor.execute(sql, values)
+        session = cursor.fetchone()
+
+        if not session:
+            cursor.close()
+            return jsonify({
+                "type": "fail", 
+                "reason": "wrong session id"
+            }), 401
+
+        return jsonify({
+            "type": "success",
+            "id": session[0]
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/get_all_skins')
 @cross_origin()
 def get_all_skins():
