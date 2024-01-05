@@ -756,8 +756,8 @@ def click_tile():
             )
             
             # Add XP and Battlepass XP
-            sql = "WITH row AS (UPDATE users SET xp = xp+%s, bp_xp = bp_xp+%s WHERE uuid = %s RETURNING xp, bp_xp) SELECT xp, bp_xp FROM row"
-            values = (added_xp, added_xp, user_id)
+            sql = "WITH row AS (UPDATE users SET xp = xp+%s, bp_xp = bp_xp+%s, coins = coins + %s WHERE uuid = %s RETURNING xp, bp_xp, coins) SELECT xp, bp_xp, coins FROM row"
+            values = (added_xp, added_xp, added_xp, user_id)
             cursor.execute(sql, values)
             conn.commit()
             user = cursor.fetchone()
@@ -771,6 +771,7 @@ def click_tile():
 
             user_xp = user[0]
             user_battlepass_xp = user[1]
+            user_coins = user[2]
             
             cursor.close()
 
@@ -787,6 +788,8 @@ def click_tile():
                 "board": board,
                 "added_xp": added_xp,
                 "xp": user_xp,
+                "added_coins": added_xp,
+                "coins": user_coins
                 "battlepass_xp": user_battlepass_xp
             })
             return result, 200
