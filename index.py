@@ -698,12 +698,20 @@ def click_tile():
         # id not found
         if tile_id not in tiles:
             cursor.close()
-            return jsonify({"type": "fail", "reason": "tile not found"}), 404
+            return jsonify({
+                "type": "fail", 
+                "reason": "tile not found",
+                "board": sanitize_game_data(game_data)
+            }), 404
 
         # Already clicked (not hidden)
         if not tiles[tile_id]['hidden']:
             cursor.close()
-            return jsonify({"type": "fail", "reason": "tile already clicked"}), 400
+            return jsonify({
+                "type": "fail", 
+                "reason": "tile already clicked",
+                "board": sanitize_game_data(game_data)
+            }), 400
 
         # Loss condition
         if tiles[tile_id]['value'] == 9:
@@ -731,7 +739,11 @@ def click_tile():
             tiles = uncover_tiles(tiles, game_data['size_x'], game_data['size_y'], tile_id)
         else:
             cursor.close()
-            return jsonify({"type": "fail", "reason": "unknown tile value"}), 500
+            return jsonify({
+                "type": "fail", 
+                "reason": "unknown tile value",
+                "board": sanitize_game_data(game_data)
+            }), 500
 
         game_data['tiles'] = tiles
         
@@ -752,7 +764,10 @@ def click_tile():
 
             if not user:
                 cursor.close()
-                return jsonify({"type": "fail", "reason": "unknown error fetching user"}), 500
+                return jsonify({
+                    "type": "fail", 
+                    "reason": "unknown error fetching user"
+                }), 500
 
             user_xp = user[0]
             user_battlepass_xp = user[1]
@@ -765,8 +780,6 @@ def click_tile():
                 kwargs={'session_id': session_id}
             )
             thread.start()
-
-            # TODO: give reward to player and pass it to the client
 
             board = sanitize_game_data(game_data)
             result = jsonify({
@@ -785,10 +798,9 @@ def click_tile():
         conn.commit()
         cursor.close()
         
-        board = sanitize_game_data(game_data)
         result = {
             'type': "playing",
-            'board': board,
+            "board": sanitize_game_data(game_data)
         }
         if start_time:
             result['start_time'] = start_time
