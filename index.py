@@ -5,6 +5,7 @@ import re
 from hashlib import pbkdf2_hmac
 from threading import Thread
 from time import time
+from math import ceil
 
 import psycopg2
 from bitstring import BitArray
@@ -849,6 +850,20 @@ def debug_calculate(size):
 def create_game():
     # [session_id, size_x, size_y, mine_count]
     session_id = request.json['session_id']
+    size_x = request.json['size_x']
+    size_y = request.json['size_y']
+    difficulty = str(request.json['difficulty'])
+
+    if not session_id or not size_x or not size_y or not difficulty:
+        return jsonify({"type": "fail", "reason": "missing parameters"}), 400
+
+    difficulty_list = {
+        '1': 0.1,
+        '2': 0.2,
+        '3': 0.3,
+        '4': 0.5
+    }
+    mine_count = ceil(difficulty_list[difficulty] * size_x * size_y)
 
     try:
         cursor = conn.cursor()
@@ -879,9 +894,6 @@ def create_game():
             print(f"deleted old game for session {session_id}")
     
         # Creating game data
-        size_x = request.json['size_x']
-        size_y = request.json['size_y']
-        mine_count = request.json['mine_count']
         game_board = create_game_board(size_x, size_y, mine_count)
         game_data = {
             'tiles': {
