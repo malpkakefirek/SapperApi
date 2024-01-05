@@ -789,7 +789,7 @@ def click_tile():
                 "added_xp": added_xp,
                 "xp": user_xp,
                 "added_coins": added_xp,
-                "coins": user_coins
+                "coins": user_coins,
                 "battlepass_xp": user_battlepass_xp
             })
             return result, 200
