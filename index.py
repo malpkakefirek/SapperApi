@@ -67,11 +67,11 @@ def sanitize_game_data(game_data):
     }
     return sanitized_data
 
-def uncover_all_mines(game_data):
+def uncover_all_tiles(game_data):
     """Ucover all hidden tiles (-1) and only provide useful data (id: value)"""
 
     sanitized_data = {
-        id: data['value'] if not data['hidden'] or data['value'] == 9 else -1
+        id: data['value']
         for id, data in game_data['tiles'].items()
     }
     return sanitized_data
@@ -729,7 +729,7 @@ def click_tile():
             game_data['tiles'] = tiles
             return jsonify({
                 'type': "loss", 
-                'board': uncover_all_mines(game_data)
+                'board': uncover_all_tiles(game_data)
             }), 200
 
         # Uncover tiles, because a number tile got clicked
