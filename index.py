@@ -31,6 +31,49 @@ def connect():
 
 conn = connect()
 
+battlepass_rewards = {
+    "1": {"type": "booster", "count": 1},
+    "2": {"type": "booster", "count": 1},
+    "3": {"type": "avatar", "id": 3},
+    "4": {"type": "booster", "count": 2},
+    "5": {"type": "gems", "count": 100},
+    "6": {"type": "booster", "count": 1},
+    "7": {"type": "booster", "count": 3},
+    "8": {"type": "gems", "count": 50},
+    "9": {"type": "booster", "count": 1},
+    "10": {"type": "skin", "id": 1},
+    "11": {"type": "gems", "count": 100},
+    "12": {"type": "booster", "count": 1},
+    "13": {"type": "booster", "count": 2},
+    "14": {"type": "avatar", "id": 2},
+    "15": {"type": "gems", "count": 100},
+    "16": {"type": "booster", "count": 2},
+    "17": {"type": "gems", "count": 50},
+    "18": {"type": "booster", "count": 1},
+    "19": {"type": "booster", "count": 1},
+    "20": {"type": "skin", "id": 3},
+    "21": {"type": "gems", "count": 100},
+    "22": {"type": "booster", "count": 2},
+    "23": {"type": "booster", "count": 1},
+    "24": {"type": "avatar", "id": 5},
+    "25": {"type": "gems", "count": 100},
+    "26": {"type": "booster", "count": 3},
+    "27": {"type": "booster", "count": 1},
+    "28": {"type": "gems", "count": 50},
+    "29": {"type": "booster", "count": 1},
+    "30": {"type": "skin", "id": 10},
+    "31": {"type": "gems", "count": 100},
+    "32": {"type": "booster", "count": 3},
+    "33": {"type": "booster", "count": 2},
+    "34": {"type": "avatar", "id": 8},
+    "35": {"type": "gems", "count": 100},
+    "36": {"type": "booster", "count": 3},
+    "37": {"type": "gems", "count": 50},
+    "38": {"type": "booster", "count": 1},
+    "39": {"type": "gems", "count": 100},
+    "40": {"type": "avatar", "id": 9},
+} 
+
 # FUNCTIONS
 
 def create_game_board(size_x, size_y, mine_count):
@@ -149,6 +192,17 @@ def calculate_xp(mine_count, size):
         size_bonus = 75
 
     return difficulty_bonus + size_bonus
+
+def get_battlepass_lvl(battlepass_xp):
+    expRequired = 100
+    expIncrementAmount = 25
+    currentLevel = 0
+
+    while battlepass_xp >= expRequired:
+        battlepass_xp -= expRequired
+        currentLevel += 1
+        expRequired += expIncrementAmount
+    return currentLevel
 
 # ROUTES
 
@@ -695,13 +749,43 @@ def buy_battlepass():
             cursor.close()
             return jsonify({"type": "fail", "reason": "not enough gems"}), 401
 
-        sql = "WITH rows AS \
-               (UPDATE users SET gems = gems - %s WHERE uuid = %s RETURNING gems) \
-               SELECT gems FROM rows"
-        values = (battlepass_cost, user_id)
+        sql = "UPDATE users SET gems = gems - %s, owns_battlepass = %s WHERE uuid = %s"
+        values = (battlepass_cost, True, user_id)
         cursor.execute(sql, values)
         conn.commit()
-        gems = cursor.fetchone()[0]
+
+        # Add items from battlepass
+        sql = "SELECT gems, bp_xp, booster_count, owned_avatars, owned_skins \
+               FROM users WHERE uuid = %s FOR UPDATE"
+        values = (user_id, )
+        cursor.execute(sql, values)
+        user = cursor.fetchone()
+
+        gems = user[0]
+        battlepass_xp = user[1]
+        booster_count = user[2]
+        owned_avatars = user[3]
+        owned_skins = user[4]
+
+        battlepass_lvl = get_battlepass_lvl(battlepass_xp)
+        for tier in range(1, battlepass_lvl+1):
+            item = battlepass_rewards[str(tier)]
+            if item['type'] == "booster":
+                booster_count += item['count']
+                continue
+            if item['type'] == "avatar":
+                owned_avatars.append(item['id'])
+                continue
+            if item['type'] == "skin":
+                owned_skins.append(item['id'])
+                continue
+        
+        sql = "UPDATE users \
+               SET booster_count = %s, owned_avatars = %s, owned_skins = %s \
+               WHERE uuid = %s"
+        values = (booster_count, owned_avatars, owned_skins, user_id)
+        cursor.execute(sql, values)
+        conn.commit()
         cursor.close()
 
         return jsonify({
@@ -847,6 +931,42 @@ def click_tile():
             user_battlepass_xp = user[1]
             user_coins = user[2]
             
+            # If battlepass lvl changed, give rewards
+            old_battlepass_lvl = get_battlepass_lvl(user_battlepass_xp - added_xp)
+            new_battlepass_lvl = get_battlepass_lvl(user_battlepass_xp)
+            bp_reward = "False"
+            if new_battlepass_lvl > old_battlepass_lvl:
+                bp_reward = "True"
+                sql = "SELECT booster_count, owned_avatars, owned_skins \
+                       FROM users WHERE uuid = %s FOR UPDATE"
+                values = (user_id, )
+                cursor.execute(sql, values)
+                user = cursor.fetchone()
+
+                booster_count = user[0]
+                owned_avatars = user[1]
+                owned_skins = user[2]
+
+                battlepass_lvl = get_battlepass_lvl(battlepass_xp)
+                for tier in range(1, battlepass_lvl+1):
+                    item = battlepass_rewards[str(tier)]
+                    if item['type'] == "booster":
+                        booster_count += item['count']
+                        continue
+                    if item['type'] == "avatar":
+                        owned_avatars.append(item['id'])
+                        continue
+                    if item['type'] == "skin":
+                        owned_skins.append(item['id'])
+                        continue
+                
+                sql = "UPDATE users \
+                       SET booster_count = %s, owned_avatars = %s, owned_skins = %s \
+                       WHERE uuid = %s"
+                values = (booster_count, owned_avatars, owned_skins, user_id)
+                cursor.execute(sql, values)
+                conn.commit()
+
             cursor.close()
 
             # Delete game from database in another thread
@@ -864,7 +984,8 @@ def click_tile():
                 "xp": user_xp,
                 "added_coins": added_xp,
                 "coins": user_coins,
-                "battlepass_xp": user_battlepass_xp
+                "battlepass_xp": user_battlepass_xp,
+                "battlepass_reward": bp_reward
             })
             return result, 200
 
