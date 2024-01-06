@@ -919,10 +919,41 @@ def click_tile():
                     "reason": "unknown error fetching user"
                 }), 500
             
+            # If battlepass active, add multiplier
+            bp_multiplier = 0
             owns_battlepass = user[0]
-            
+            if owns_battlepass:
+                bp_multiplier = 0.25
+
+            # If booster active, add multiplier
+            boost_multiplier = 0
+            if game_data['booster_active']:
+                boost_multiplier = 0.25
+
+            # Calculate XP
+            base_xp = calculate_xp(
+                game_data['mine_count'], 
+                game_data['size_x'] * game_data['size_y']
+            )
+
+            added_coins = base_xp * (1 + boost_multiplier)
+            added_xp = base_xp * (1 + boost_multiplier)
+            added_battlepass_xp = base_xp * (1 + boost_multiplier + bp_multiplier)
+
+            # Add XP, Battlepass XP and coins
+            sql = "WITH row AS (UPDATE users SET coins = coins+%s, xp = xp+%s, bp_xp = bp_xp+%s WHERE uuid = %s RETURNING xp, bp_xp, coins) SELECT xp, bp_xp, coins FROM row"
+            values = (added_coins, added_xp, added_battlepass_xp, user_id)
+            cursor.execute(sql, values)
+            conn.commit()
+            user = cursor.fetchone()
+            cursor.close()
+
+            user_xp = user[0]
+            user_battlepass_xp = user[1]
+            user_coins = user[2]
+
             # If battlepass lvl changed, give rewards
-            old_battlepass_lvl = get_battlepass_lvl(user_battlepass_xp - added_xp)
+            old_battlepass_lvl = get_battlepass_lvl(user_battlepass_xp - added_battlepass_xp)
             new_battlepass_lvl = get_battlepass_lvl(user_battlepass_xp)
             bp_reward = "false"
             if new_battlepass_lvl > old_battlepass_lvl:
@@ -956,38 +987,6 @@ def click_tile():
                 values = (booster_count, owned_avatars, owned_skins, user_id)
                 cursor.execute(sql, values)
                 conn.commit()
-
-            # If battlepass active, add multiplier
-            bp_multiplier = 0
-            if owns_battlepass:
-                bp_multiplier = 0.25
-
-            # If booster active, add multiplier
-            boost_multiplier = 0
-            if game_data['booster_active']:
-                boost_multiplier = 0.25
-
-            # Calculate XP
-            base_xp = calculate_xp(
-                game_data['mine_count'], 
-                game_data['size_x'] * game_data['size_y']
-            )
-
-            added_coins = base_xp * (1 + boost_multiplier)
-            added_xp = base_xp * (1 + boost_multiplier)
-            added_battlepass_xp = base_xp * (1 + boost_multiplier + bp_multiplier)
-
-            # Add XP, Battlepass XP and coins
-            sql = "WITH row AS (UPDATE users SET coins = coins+%s, xp = xp+%s, bp_xp = bp_xp+%s WHERE uuid = %s RETURNING xp, bp_xp, coins) SELECT xp, bp_xp, coins FROM row"
-            values = (added_coins, added_xp, added_battlepass_xp, user_id)
-            cursor.execute(sql, values)
-            conn.commit()
-            user = cursor.fetchone()
-            cursor.close()
-
-            user_xp = user[0]
-            user_battlepass_xp = user[1]
-            user_coins = user[2]
 
             # Delete game from database in another thread
             thread = Thread(
