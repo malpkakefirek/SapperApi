@@ -989,6 +989,47 @@ def get_avatar():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/get_user_avatars', methods=['POST'])
+@cross_origin()
+def get_user_avatars():
+    session_id = request.json['session_id']
+    
+    if not session_id:
+        return jsonify({"type": "fail", "reason": "not logged in"}), 400
+
+    try:
+        cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
+        sql = "SELECT user_id FROM sessions WHERE session_id = %s"
+        values = (session_id,)
+        cursor.execute(sql, values)
+        session = cursor.fetchone()
+
+        if not session:
+            cursor.close()
+            return jsonify({"type": "fail", "reason": "wrong session id"}), 401
+
+        user_id = session[0]
+        sql = f"SELECT owned_avatars FROM users WHERE uuid = %s"
+        values = (user_id, )
+        cursor.execute(sql, values)
+        user = cursor.fetchone()
+        cursor.close()
+
+        if not user:
+            return jsonify({"type": "fail", "reason": "unknown user error"}), 400
+        
+        owned_avatars = user[0]
+        return jsonify({
+            "type": "success",
+            "owned_avatars": owned_avatars
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 # GAME ENDPOINTS
 @app.route('/click_tile', methods=['POST'])
