@@ -786,6 +786,47 @@ def buy_battlepass():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/battlepass_status', methods=['POST'])
+@cross_origin()
+def battlepass_status():
+    session_id = request.json['session_id']
+
+    if not session_id:
+        return jsonify({"type": "fail", "reason": "not logged in"}), 400
+
+    try:
+        cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
+        sql = "SELECT user_id FROM sessions WHERE session_id = %s"
+        values = (session_id,)
+        cursor.execute(sql, values)
+        session = cursor.fetchone()
+
+        if not session:
+            cursor.close()
+            return jsonify({"type": "fail", "reason": "wrong session id"}), 401
+
+        user_id = session[0]
+        sql = "SELECT owns_battlepass FROM users WHERE uuid = %s"
+        values = (user_id, )
+        cursor.execute(sql, values)
+        user = cursor.fetchone()
+        cursor.close()
+        
+        if not user:
+            return jsonify({"type": "fail", "reason": "unknown user error"}), 400
+        
+        owns_battlepass = "true" if user[0] else "false"
+        return jsonify({
+            "type": "success",
+            "owned": owns_battlepass
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 # boosters
 @app.route('/get_booster_count', methods=['POST'])
