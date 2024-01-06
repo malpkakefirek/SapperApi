@@ -796,6 +796,75 @@ def buy_battlepass():
         return jsonify({'error': str(e)}), 500
 
 
+# boosters
+@app.route('/buy_booster', methods=['POST'])
+@cross_origin()
+def buy_booster():
+    session_id = request.json['session_id']
+    currency = request.json['currency']
+    
+    if not session_id or not currency:
+        return jsonify({"type": "fail", "reason": "missing parameters"}), 400
+    
+    if currency == "coins":
+        booster_cost = 200
+    elif currency == "gems":
+        booster_cost = 50
+    else:
+        return jsonify({"type": "fail", "reason": "wrong currency"}), 400
+
+
+    try:
+        cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
+        sql = "SELECT user_id FROM sessions WHERE session_id = %s"
+        values = (session_id,)
+        cursor.execute(sql, values)
+        session = cursor.fetchone()
+
+        if not session:
+            cursor.close()
+            return jsonify({"type": "fail", "reason": "wrong session id"}), 401
+
+        user_id = session[0]
+        sql = f"SELECT {currency} FROM users WHERE uuid = %s FOR UPDATE"
+        values = (user_id, )
+        cursor.execute(sql, values)
+        user = cursor.fetchone()
+        
+        if not user:
+            cursor.close()
+            return jsonify({"type": "fail", "reason": "unknown user error"}), 400
+        
+        balance = user[0]
+        if balance < booster_cost:
+            cursor.close()
+            return jsonify({"type": "fail", "reason": f"not enough {currency}"}), 401
+
+        sql = f"WITH rows AS \
+                (UPDATE users SET {currency} = {currency} - %s, booster_count = booster_count + %s WHERE uuid = %s RETURNING booster_count)\
+                SELECT booster_count FROM rows"
+        values = (booster_cost, 1, user_id)
+        cursor.execute(sql, values)
+        conn.commit()
+
+        booster_count = cursor.fetchone()[0]
+        balance -= booster_cost
+
+        cursor.close()
+
+        return jsonify({
+            "type": "success",
+            "new_balance": balance,
+            "currency": currency,
+            "booster_count": booster_count
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # GAME ENDPOINTS
 @app.route('/click_tile', methods=['POST'])
 @cross_origin()
