@@ -423,6 +423,51 @@ def get_user_id():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+# SHOP ENDPOINTS
+# general
+@app.route('/get_balance', methods=['POST'])
+@cross_origin()
+def get_balance():
+    session_id = request.json['session_id']
+
+    if not session_id:
+        return jsonify({"type": "fail", "reason": "missing session id"}), 400
+
+    try:
+        cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
+        sql = "SELECT user_id FROM sessions WHERE session_id = %s"
+        values = (session_id,)
+        cursor.execute(sql, values)
+        session = cursor.fetchone()
+
+        if not session:
+            cursor.close()
+            return jsonify({"type": "fail", "reason": "wrong session id"}), 401
+
+        user_id = session[0]
+        sql = "SELECT coins, gems FROM users WHERE uuid = %s"
+        values = (user_id, )
+        cursor.execute(sql, values)
+        user = cursor.fetchone()
+        cursor.close()
+
+        if not user:
+            return jsonify({"type": "fail", "reason": "wrong user id"}), 401
+        
+        return jsonify({
+            "type": "success",
+            "coins": user[0],
+            "gems": user[1]
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# skins
 @app.route('/get_all_skins')
 @cross_origin()
 def get_all_skins():
@@ -485,111 +530,9 @@ def get_user_skins():
         user_skins = user[0]
         print(user_skins)
         
-        
-        # sql = "SELECT * FROM skins WHERE sid = ANY(%s)"
-        # values = (user_skins,)
-        # cursor.execute(sql, values)
-        # skins = cursor.fetchall()
-        # cursor.close()
-
-        # data = {}
-        # for skin in skins:
-        #     skin_id = skin[0]
-        #     skin_name = skin[1]
-        #     price_coins = skin[2]
-        #     price_gems = skin[3]
-
-        #     data[str(skin_id)] = {
-        #         'name': skin_name,
-        #         'price_coins': price_coins,
-        #         'price_gems': price_gems
-        #     }
         return jsonify({"ids": user_skins}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
-@app.route('/get_balance', methods=['POST'])
-@cross_origin()
-def get_balance():
-    session_id = request.json['session_id']
-
-    if not session_id:
-        return jsonify({"type": "fail", "reason": "missing session id"}), 400
-
-    try:
-        cursor = conn.cursor()
-    except:
-        conn = connect()
-        cursor = conn.cursor()
-    try:
-        sql = "SELECT user_id FROM sessions WHERE session_id = %s"
-        values = (session_id,)
-        cursor.execute(sql, values)
-        session = cursor.fetchone()
-
-        if not session:
-            cursor.close()
-            return jsonify({"type": "fail", "reason": "wrong session id"}), 401
-
-        user_id = session[0]
-        sql = "SELECT coins, gems FROM users WHERE uuid = %s"
-        values = (user_id, )
-        cursor.execute(sql, values)
-        user = cursor.fetchone()
-        cursor.close()
-
-        if not user:
-            return jsonify({"type": "fail", "reason": "wrong user id"}), 401
-        
-        return jsonify({
-            "type": "success",
-            "coins": user[0],
-            "gems": user[1]
-        }), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/buy_gems', methods=['POST'])
-@cross_origin()
-def buy_gems():
-    session_id = request.json['session_id']
-    amount = request.json['gemsQuantity']
-
-    if not session_id or not amount:
-        return jsonify({"type": "fail", "reason": "missing parameters"}), 400
-
-    try:
-        cursor = conn.cursor()
-    except:
-        conn = connect()
-        cursor = conn.cursor()
-    try:
-        sql = "SELECT user_id FROM sessions WHERE session_id = %s"
-        values = (session_id,)
-        cursor.execute(sql, values)
-        session = cursor.fetchone()
-
-        if not session:
-            cursor.close()
-            return jsonify({"type": "fail", "reason": "wrong session id"}), 401
-
-        user_id = session[0]
-        sql = "WITH rows AS \
-        (UPDATE users SET gems = gems + %s WHERE uuid = %s RETURNING gems) \
-        SELECT gems FROM rows"
-        values = (amount, user_id)
-        cursor.execute(sql, values)
-        conn.commit()
-        gems = cursor.fetchone()[0]
-        cursor.close()
-
-        return jsonify({
-            "type": "success",
-            "new_balance": gems
-        }), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-    
 
 @app.route('/buy_skin', methods=['POST'])
 @cross_origin()
@@ -669,6 +612,53 @@ def buy_skin():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# currency
+@app.route('/buy_gems', methods=['POST'])
+@cross_origin()
+def buy_gems():
+    session_id = request.json['session_id']
+    amount = request.json['gemsQuantity']
+
+    if not session_id or not amount:
+        return jsonify({"type": "fail", "reason": "missing parameters"}), 400
+
+    try:
+        cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
+        sql = "SELECT user_id FROM sessions WHERE session_id = %s"
+        values = (session_id,)
+        cursor.execute(sql, values)
+        session = cursor.fetchone()
+
+        if not session:
+            cursor.close()
+            return jsonify({"type": "fail", "reason": "wrong session id"}), 401
+
+        user_id = session[0]
+        sql = "WITH rows AS \
+        (UPDATE users SET gems = gems + %s WHERE uuid = %s RETURNING gems) \
+        SELECT gems FROM rows"
+        values = (amount, user_id)
+        cursor.execute(sql, values)
+        conn.commit()
+        gems = cursor.fetchone()[0]
+        cursor.close()
+
+        return jsonify({
+            "type": "success",
+            "new_balance": gems
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# battlepass
+
+
+# GAME ENDPOINTS
 @app.route('/click_tile', methods=['POST'])
 @cross_origin()
 def click_tile():
@@ -863,7 +853,7 @@ def debug_calculate(size):
         result[f"{size}x{size} - {mines} mines"] = calculate_xp(mines,size*size)
     return jsonify(result), 200
 
-# !! TO DO !!
+
 # @app.route('/retrieve_levels', methods=['POST'])
 # @cross_origin()
 # def retrieve_levels():
