@@ -276,7 +276,6 @@ def login():
         user = cursor.fetchone()
         
         if user is None:
-            print("1")
             cursor.close()
             return jsonify({
                 "type":"fail", 
@@ -300,11 +299,9 @@ def login():
         )
         
         if db_hash != password_hash:
-            print("2")
             cursor.close()
             return jsonify({"type":"fail", "reason":"username or password is incorrect"}), 200
     
-        print("3")
         sql = "with rows as (INSERT INTO sessions (user_id) VALUES (%s) RETURNING session_id) SELECT session_id FROM rows"
         values = (uuid, )
         cursor.execute(sql, values)
@@ -313,7 +310,6 @@ def login():
         cursor.close()
     
         if not session:
-            print("4")
             return jsonify({"type":"fail", "reason":"unknown error"}), 500
     
         print(f"new session_id {session[0]} for user {email} with uuid {uuid}")
@@ -363,7 +359,6 @@ def register():
         existing_email = cursor.fetchone()
         
         if existing_email:
-            print("1")
             cursor.close()
             return jsonify({"type":"fail", "reason":"account with this email already exists"}), 200
             
@@ -373,7 +368,6 @@ def register():
         existing_username = cursor.fetchone()
     
         if existing_username:
-            print("2")
             cursor.close()
             return jsonify({"type":"fail", "reason":"username is taken"}), 200
     
@@ -395,7 +389,6 @@ def register():
         user = cursor.fetchone()
         
         if not user:
-            print("3")
             cursor.close()
             return jsonify({"type":"fail", "reason":"unknown error"}), 500
         print(f"created account {user[0]} with email {user[1]}")
@@ -407,7 +400,6 @@ def register():
         cursor.close()
     
         if not session:
-            print("4")
             return jsonify({"type":"fail", "reason":"unknown error"}), 500
     
         print(f"and session_id {session[0]}")
@@ -583,8 +575,6 @@ def get_user_skins():
             return jsonify({"type": "fail", "reason": "wrong user id"}), 401
         
         user_skins = user[0]
-        print(user_skins)
-        
         return jsonify({"ids": user_skins}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -965,8 +955,6 @@ def set_avatar():
 def click_tile():
     session_id = request.json['session_id']
     tile_id = request.json['tile_id']
-    print(session_id)
-    print(tile_id)
 
     try:
         cursor = conn.cursor()
