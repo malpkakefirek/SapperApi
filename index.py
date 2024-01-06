@@ -1147,7 +1147,6 @@ def create_game():
         values = (booster_count-1, user_id)
         cursor.execute(sql, values)
         conn.commit()
-        cursor.close()
 
         # Creating game data
         game_board = create_game_board(size_x, size_y, mine_count)
