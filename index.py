@@ -1113,6 +1113,8 @@ def create_game():
             cursor.close()
             return jsonify({"type": "fail", "reason": "wrong session id"}), 401
     
+        user_id = session[0]
+
         sql = "SELECT data FROM games WHERE game_id = %s"
         values = (session_id, )
         cursor.execute(sql, values)
