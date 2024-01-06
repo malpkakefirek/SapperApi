@@ -946,7 +946,6 @@ def click_tile():
             cursor.execute(sql, values)
             conn.commit()
             user = cursor.fetchone()
-            cursor.close()
 
             user_xp = user[0]
             user_battlepass_xp = user[1]
@@ -987,6 +986,8 @@ def click_tile():
                 values = (booster_count, owned_avatars, owned_skins, user_id)
                 cursor.execute(sql, values)
                 conn.commit()
+
+            cursor.close()
 
             # Delete game from database in another thread
             thread = Thread(
