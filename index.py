@@ -521,6 +521,7 @@ def get_balance():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
 # skins
 @app.route('/get_all_skins')
 @cross_origin()
@@ -799,7 +800,7 @@ def buy_battlepass():
 # boosters
 @app.route('/get_booster_count', methods=['POST'])
 @cross_origin()
-def buy_booster():
+def get_booster_count():
     session_id = request.json['session_id']
     
     if not session_id or not currency:
@@ -905,6 +906,58 @@ def buy_booster():
         }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+# avatars
+@app.route('/set_avatar', methods=['POST'])
+@cross_origin()
+def set_avatar():
+    session_id = request.json['session_id']
+    avatar_id = request.json['avatar_id']
+    
+    if not session_id or not avatar_id:
+        return jsonify({"type": "fail", "reason": "missing parameters"}), 400
+
+    try:
+        cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
+        sql = "SELECT user_id FROM sessions WHERE session_id = %s"
+        values = (session_id,)
+        cursor.execute(sql, values)
+        session = cursor.fetchone()
+
+        if not session:
+            cursor.close()
+            return jsonify({"type": "fail", "reason": "wrong session id"}), 401
+
+        user_id = session[0]
+        sql = f"SELECT owned_avatars FROM users WHERE uuid = %s FOR UPDATE"
+        values = (user_id, )
+        cursor.execute(sql, values)
+        user = cursor.fetchone()
+        
+        if not user:
+            cursor.close()
+            return jsonify({"type": "fail", "reason": "unknown user error"}), 400
+        
+        owned_avatars = list(user[0])
+        if avatar_id not in owned_avatars:
+            cursor.close()
+            return jsonify({"type": "fail", "reason": f"user doesn't own avatar with id {avatar_id}"}), 401
+
+        sql = f"UPDATE users SET avatar = %s WHERE uuid = %s"
+        values = (avatar_id, user_id)
+        cursor.execute(sql, values)
+        conn.commit()
+        cursor.close()
+
+        return jsonify({"type": "success"}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 # GAME ENDPOINTS
 @app.route('/click_tile', methods=['POST'])
