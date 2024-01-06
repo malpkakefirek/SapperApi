@@ -639,8 +639,8 @@ def buy_gems():
 
         user_id = session[0]
         sql = "WITH rows AS \
-        (UPDATE users SET gems = gems + %s WHERE uuid = %s RETURNING gems) \
-        SELECT gems FROM rows"
+               (UPDATE users SET gems = gems + %s WHERE uuid = %s RETURNING gems) \
+               SELECT gems FROM rows"
         values = (amount, user_id)
         cursor.execute(sql, values)
         conn.commit()
@@ -656,6 +656,60 @@ def buy_gems():
 
 
 # battlepass
+@app.route('/buy_battlepass', methods=['POST'])
+@cross_origin()
+def buy_battlepass():
+    session_id = request.json['session_id']
+    battlepass_cost = 950
+
+    if not session_id:
+        return jsonify({"type": "fail", "reason": "not logged in"}), 400
+
+    try:
+        cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
+        sql = "SELECT user_id FROM sessions WHERE session_id = %s"
+        values = (session_id,)
+        cursor.execute(sql, values)
+        session = cursor.fetchone()
+
+        if not session:
+            cursor.close()
+            return jsonify({"type": "fail", "reason": "wrong session id"}), 401
+
+        user_id = session[0]
+        sql = "SELECT gems FROM users WHERE uuid = %s FOR UPDATE"
+        values = (user_id, )
+        cursor.execute(sql, values)
+        user = cursor.fetchone()
+        
+        if not user:
+            cursor.close()
+            return jsonify({"type": "fail", "reason": "unknown user error"}), 400
+        
+        gems = user[0]
+        if gems < battlepass_cost:
+            cursor.close()
+            return jsonify({"type": "fail", "reason": "not enough gems"}), 401
+
+        sql = "WITH rows AS \
+               (UPDATE users SET gems = gems - %s WHERE uuid = %s RETURNING gems) \
+               SELECT gems FROM rows"
+        values = (battlepass_cost, user_id)
+        cursor.execute(sql, values)
+        conn.commit()
+        gems = cursor.fetchone()[0]
+        cursor.close()
+
+        return jsonify({
+            "type": "success",
+            "new_balance": gems
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 # GAME ENDPOINTS
