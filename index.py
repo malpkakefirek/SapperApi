@@ -907,17 +907,9 @@ def click_tile():
         
         # Win condition
         if count_hidden_tiles(tiles) == game_data['mine_count']:
-            # Calculate XP
-            added_xp = calculate_xp(
-                game_data['mine_count'], 
-                game_data['size_x'] * game_data['size_y']
-            )
-            
-            # Add XP and Battlepass XP
-            sql = "WITH row AS (UPDATE users SET xp = xp+%s, bp_xp = bp_xp+%s, coins = coins + %s WHERE uuid = %s RETURNING xp, bp_xp, coins) SELECT xp, bp_xp, coins FROM row"
-            values = (added_xp, added_xp, added_xp, user_id)
+            sql = "SELECT owns_battlepass FROM users WHERE uuid = %s"
+            values = (user_id, )
             cursor.execute(sql, values)
-            conn.commit()
             user = cursor.fetchone()
 
             if not user:
@@ -926,17 +918,15 @@ def click_tile():
                     "type": "fail", 
                     "reason": "unknown error fetching user"
                 }), 500
-
-            user_xp = user[0]
-            user_battlepass_xp = user[1]
-            user_coins = user[2]
+            
+            owns_battlepass = user[0]
             
             # If battlepass lvl changed, give rewards
             old_battlepass_lvl = get_battlepass_lvl(user_battlepass_xp - added_xp)
             new_battlepass_lvl = get_battlepass_lvl(user_battlepass_xp)
-            bp_reward = "False"
+            bp_reward = "false"
             if new_battlepass_lvl > old_battlepass_lvl:
-                bp_reward = "True"
+                bp_reward = "true"
                 sql = "SELECT booster_count, owned_avatars, owned_skins \
                        FROM users WHERE uuid = %s FOR UPDATE"
                 values = (user_id, )
@@ -967,7 +957,37 @@ def click_tile():
                 cursor.execute(sql, values)
                 conn.commit()
 
+            # If battlepass active, add multiplier
+            bp_multiplier = 0
+            if owns_battlepass:
+                bp_multiplier = 0.25
+
+            # If booster active, add multiplier
+            boost_multiplier = 0
+            if game_data['booster_active']:
+                boost_multiplier = 0.25
+
+            # Calculate XP
+            base_xp = calculate_xp(
+                game_data['mine_count'], 
+                game_data['size_x'] * game_data['size_y']
+            )
+
+            added_coins = base_xp * (1 + boost_multiplier)
+            added_xp = base_xp * (1 + boost_multiplier)
+            added_battlepass_xp = base_xp * (1 + boost_multiplier + bp_multiplier)
+
+            # Add XP, Battlepass XP and coins
+            sql = "WITH row AS (UPDATE users SET coins = coins+%s, xp = xp+%s, bp_xp = bp_xp+%s WHERE uuid = %s RETURNING xp, bp_xp, coins) SELECT xp, bp_xp, coins FROM row"
+            values = (added_coins, added_xp, added_battlepass_xp, user_id)
+            cursor.execute(sql, values)
+            conn.commit()
+            user = cursor.fetchone()
             cursor.close()
+
+            user_xp = user[0]
+            user_battlepass_xp = user[1]
+            user_coins = user[2]
 
             # Delete game from database in another thread
             thread = Thread(
@@ -980,11 +1000,12 @@ def click_tile():
             result = jsonify({
                 "type": "win", 
                 "board": board,
-                "added_xp": added_xp,
                 "xp": user_xp,
-                "added_coins": added_xp,
+                "added_xp": added_xp,
                 "coins": user_coins,
+                "added_coins": added_coins,
                 "battlepass_xp": user_battlepass_xp,
+                "added_battlepass_xp": added_battlepass_xp,
                 "battlepass_reward": bp_reward
             })
             return result, 200
@@ -1058,15 +1079,17 @@ def debug_calculate(size):
 @app.route('/create_game', methods=['POST'])
 @cross_origin()
 def create_game():
-    # [session_id, size_x, size_y, mine_count]
+    # [session_id, size_x, size_y, mine_count, booster_used]
     session_id = request.json['session_id']
     size_x = request.json['size_x']
     size_y = request.json['size_y']
     difficulty = str(request.json['difficulty'])
+    booster_used = request.json['booster_used']
 
-    if not session_id or not size_x or not size_y or not difficulty:
+    if not session_id or not size_x or not size_y or not difficulty or booster_used is None:
         return jsonify({"type": "fail", "reason": "missing parameters"}), 400
 
+    booster_used = bool(int(booster_used) == 1)
     difficulty_list = {
         '1': 0.1,
         '2': 0.2,
@@ -1082,7 +1105,7 @@ def create_game():
         cursor = conn.cursor()
     try:
         sql = "SELECT user_id FROM sessions WHERE session_id = %s"
-        values = (session_id,)
+        values = (session_id, )
         cursor.execute(sql, values)
         session = cursor.fetchone()
     
@@ -1091,18 +1114,39 @@ def create_game():
             return jsonify({"type": "fail", "reason": "wrong session id"}), 401
     
         sql = "SELECT data FROM games WHERE game_id = %s"
-        values = (session_id,)
+        values = (session_id, )
         cursor.execute(sql, values)
         game = cursor.fetchone()
     
         # Delete old game if left in database
         if game:
             sql = "DELETE FROM games WHERE game_id = %s"
-            values = (session_id,)
+            values = (session_id, )
             cursor.execute(sql, values)
             conn.commit()
             print(f"deleted old game for session {session_id}")
     
+        # Remove booster from user
+        sql = "SELECT booster_count FROM users WHERE uuid = %s"
+        values = (user_id, )
+        cursor.execute(sql, values)
+        user = cursor.fetchone()
+
+        if not user:
+            cursor.close()
+            return jsonify({"type": "fail", "reason": "wrong user id"}), 401
+
+        booster_count = user[0]
+        if booster_count < 1:
+            cursor.close()
+            return jsonify({"type": "fail", "reason": "insufficient amount of boosters"}), 401
+
+        sql = "UPDATE users SET booster_count = %s WHERE uuid = %s"
+        values = (booster_count-1, user_id)
+        cursor.execute(sql, values)
+        conn.commit()
+        curosr.close()
+
         # Creating game data
         game_board = create_game_board(size_x, size_y, mine_count)
         game_data = {
@@ -1113,7 +1157,8 @@ def create_game():
             'size_x': size_x,
             'size_y': size_y,
             'mine_count': mine_count,
-            'timer_started': False
+            'timer_started': False,
+            'booster_active': booster_used
         }
         sql = "INSERT INTO games (game_id, data) VALUES (%s, %s)"
         values = (session_id, json.dumps(game_data))
