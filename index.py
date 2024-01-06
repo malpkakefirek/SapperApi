@@ -803,8 +803,8 @@ def buy_battlepass():
 def get_booster_count():
     session_id = request.json['session_id']
     
-    if not session_id or not currency:
-        return jsonify({"type": "fail", "reason": "missing parameters"}), 400
+    if not session_id:
+        return jsonify({"type": "fail", "reason": "not logged in"}), 400
 
     try:
         cursor = conn.cursor()
