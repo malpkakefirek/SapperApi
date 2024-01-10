@@ -1182,9 +1182,5 @@
                 }
             }
         }
-    },
-    "components": {
-        "schemas": {},
-        "securitySchemes": {}
     }
 }
