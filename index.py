@@ -22,10 +22,10 @@ iterations = 450959
 def connect():
     conn = psycopg2.connect(
         dbname='postgres',
-        user='postgres',
+        user='postgres.pdkykbuvuioybyhbsibu',
         password=os.environ['DB_PASSWORD'],
         host=os.environ['DB_HOST'],
-        port=5432
+        port=6543
     )
     return conn
 
