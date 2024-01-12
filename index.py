@@ -513,6 +513,47 @@ def get_balance():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/get_xp', methods=['POST'])
+@cross_origin()
+def get_xp():
+    session_id = request.json['session_id']
+
+    if not session_id:
+        return jsonify({"type": "fail", "reason": "missing session id"}), 400
+
+    try:
+        cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
+        sql = "SELECT user_id FROM sessions WHERE session_id = %s"
+        values = (session_id,)
+        cursor.execute(sql, values)
+        session = cursor.fetchone()
+
+        if not session:
+            cursor.close()
+            return jsonify({"type": "fail", "reason": "wrong session id"}), 401
+
+        user_id = session[0]
+        sql = "SELECT xp, bp_xp FROM users WHERE uuid = %s"
+        values = (user_id, )
+        cursor.execute(sql, values)
+        user = cursor.fetchone()
+        cursor.close()
+
+        if not user:
+            return jsonify({"type": "fail", "reason": "wrong user id"}), 401
+        
+        return jsonify({
+            "type": "success",
+            "xp": user[0],
+            "battlepass_xp": user[1]
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 # skins
 @app.route('/get_all_skins')
