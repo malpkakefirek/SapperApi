@@ -1402,25 +1402,26 @@ def create_game():
             conn.commit()
             print(f"deleted old game for session {session_id}")
     
-        # Remove booster from user
-        sql = "SELECT booster_count FROM users WHERE uuid = %s"
-        values = (user_id, )
-        cursor.execute(sql, values)
-        user = cursor.fetchone()
+        # Remove booster from user if used
+        if booster_used:
+            sql = "SELECT booster_count FROM users WHERE uuid = %s"
+            values = (user_id, )
+            cursor.execute(sql, values)
+            user = cursor.fetchone()
 
-        if not user:
-            cursor.close()
-            return jsonify({"type": "fail", "reason": "wrong user id"}), 401
+            if not user:
+                cursor.close()
+                return jsonify({"type": "fail", "reason": "wrong user id"}), 401
 
-        booster_count = user[0]
-        if booster_count < 1:
-            cursor.close()
-            return jsonify({"type": "fail", "reason": "insufficient amount of boosters"}), 401
+            booster_count = user[0]
+            if booster_count < 1:
+                cursor.close()
+                return jsonify({"type": "fail", "reason": "insufficient amount of boosters"}), 401
 
-        sql = "UPDATE users SET booster_count = %s WHERE uuid = %s"
-        values = (booster_count-1, user_id)
-        cursor.execute(sql, values)
-        conn.commit()
+            sql = "UPDATE users SET booster_count = %s WHERE uuid = %s"
+            values = (booster_count-1, user_id)
+            cursor.execute(sql, values)
+            conn.commit()
 
         # Creating game data
         game_board = create_game_board(size_x, size_y, mine_count)
