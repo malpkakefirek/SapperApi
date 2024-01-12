@@ -1282,8 +1282,9 @@ def click_tile():
                 owned_avatars = user[1]
                 owned_skins = user[2]
 
-                battlepass_lvl = get_battlepass_lvl(battlepass_xp)
-                for tier in range(1, battlepass_lvl+1):
+                old_battlepass_lvl = get_battlepass_lvl(old_battlepass_lvl)
+                new_battlepass_lvl = get_battlepass_lvl(new_battlepass_lvl)
+                for tier in range(max(old_battlepass_lvl, 1), new_battlepass_lvl+1):
                     item = battlepass_rewards[str(tier)]
                     if item['type'] == "booster":
                         booster_count += item['count']
