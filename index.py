@@ -744,7 +744,7 @@ def search_users():
 
 @app.route('/user_info', methods=['POST'])
 @cross_origin()
-def get_avatar():
+def user_info():
     session_id = request.json['session_id']
     friend_id = request.json['user_id']
     
