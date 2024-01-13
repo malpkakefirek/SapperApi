@@ -597,9 +597,8 @@ def get_friends():
 
         str_friends_list = user[0].strip("\{\}")
 
-        sql = "SELECT uuid, username, avatar FROM users WHERE uuid IN (%s)"
-        values = (str_friends_list,)
-        cursor.execute(sql, values)
+        sql = f"SELECT uuid, username, avatar FROM users WHERE uuid IN ({str_friends_list})"
+        cursor.execute(sql)
         friends = cursor.fetchall()
         cursor.close()
 
