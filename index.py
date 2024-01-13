@@ -527,7 +527,8 @@ def add_friend():
                 "reason": "wrong user id"
             }), 500
 
-        friends_list = user[0]
+        str_friends_list = user[0].strip("\{\}")
+        friends_list = str_friends_list.split(',')
         if friend_id in friends_list:
             cursor.close()
             return jsonify({
@@ -537,7 +538,7 @@ def add_friend():
 
 
         # Add friend to user's friend list
-        if friends_list:
+        if friends_list[0]:
             friends_list.append(friend_id)
         else:
             friends_list = [friend_id]
@@ -594,10 +595,7 @@ def get_friends():
                 "reason": "wrong user id"
             }), 500
 
-        friends_list = user[0]
-        print(friends_list)
-        str_friends_list = '\", \"'.join(friends_list)
-        print(str_friends_list)
+        str_friends_list = user[0].strip("\{\}")
 
         sql = "SELECT uuid, username, avatar FROM users WHERE uuid IN (%s)"
         values = (str_friends_list,)
