@@ -473,7 +473,7 @@ def get_user_id():
 
 
 # FRIEND ENDPOINTS
-@app.route('/friend', methods=['POST'])
+@app.route('/add_friend', methods=['POST'])
 @cross_origin()
 def add_friend():
     session_id = request.json['session_id']
