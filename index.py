@@ -742,6 +742,49 @@ def search_users():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/user_info', methods=['POST'])
+@cross_origin()
+def get_avatar():
+    session_id = request.json['session_id']
+    friend_id = request.json['user_id']
+    
+    if not session_id or not friend_id:
+        return jsonify({"type": "fail", "reason": "missing parameters"}), 400
+
+    try:
+        cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
+        sql = "SELECT user_id FROM sessions WHERE session_id = %s"
+        values = (session_id,)
+        cursor.execute(sql, values)
+        session = cursor.fetchone()
+
+        if not session:
+            cursor.close()
+            return jsonify({"type": "fail", "reason": "wrong session id"}), 401
+
+        sql = "SELECT username, avatar, xp FROM users WHERE uuid = %s"
+        values = (friend_id, )
+        cursor.execute(sql, values)
+        user = cursor.fetchone()
+        cursor.close()
+
+        if not user:
+            return jsonify({"type": "fail", "reason": "user doesn't exist"}), 400
+        
+        return jsonify({
+            "type": "success",
+            "username": user[0],
+            "avatar": user[1],
+            "xp": user[2]
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 # SHOP ENDPOINTS
 # general
 @app.route('/get_balance', methods=['POST'])
