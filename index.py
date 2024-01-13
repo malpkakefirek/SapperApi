@@ -543,7 +543,7 @@ def add_friend():
         else:
             friends_list = [friend_id]
 
-        sql = "UPDATE users SET friends = %s WHERE uuid = %s"
+        sql = "UPDATE users SET friends = %s::uuid[] WHERE uuid = %s"
         values = (friends_list, user_id)
         cursor.execute(sql, values)
         conn.commit()
@@ -611,7 +611,7 @@ def remove_friend():
         else:
             friends_list = []
 
-        sql = "UPDATE users SET friends = %s WHERE uuid = %s"
+        sql = "UPDATE users SET friends = %s::uuid[] WHERE uuid = %s"
         values = (friends_list, user_id)
         cursor.execute(sql, values)
         conn.commit()
