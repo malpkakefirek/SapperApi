@@ -595,7 +595,9 @@ def get_friends():
             }), 500
 
         friends_list = user[0]
+        print(friends_list)
         str_friends_list = '\", \"'.join(friends_list)
+        print(str_friends_list)
 
         sql = "SELECT uuid, username, avatar FROM users WHERE uuid IN (%s)"
         values = (str_friends_list,)
