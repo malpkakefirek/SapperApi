@@ -544,7 +544,7 @@ def get_xp():
         cursor.close()
 
         if not user:
-            return jsonify({"type": "fail", "reason": "wrong user id"}), 401
+            return jsonify({"type": "fail", "reason": "wrong user id"}), 404
         
         return jsonify({
             "type": "success",
