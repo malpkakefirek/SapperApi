@@ -443,6 +443,8 @@ def logout():
 @cross_origin()
 def get_user_id():
     session_id = request.json['session_id']
+    if not session_id:
+        return jsonify({"type": "fail", "reason": "missing session id"}), 401
     try:
         cursor = conn.cursor()
     except:
@@ -464,6 +466,154 @@ def get_user_id():
         return jsonify({
             "type": "success",
             "id": session[0]
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# FRIEND ENDPOINTS
+@app.route('/friend', methods=['POST'])
+@cross_origin()
+def add_friend():
+    session_id = request.json['session_id']
+    friend_id = request.json['user_id']
+
+    if not session_id or not friend_id:
+        return jsonify({"type": "fail", "reason": "missing parameters"}), 400
+    try:
+        cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
+        sql = "SELECT user_id FROM sessions WHERE session_id = %s"
+        values = (session_id,)
+        cursor.execute(sql, values)
+        session = cursor.fetchone()
+
+        if not session:
+            cursor.close()
+            return jsonify({
+                "type": "fail", 
+                "reason": "wrong session id"
+            }), 401
+
+        user_id = session[0]
+
+        # Check if friend exists
+        sql = "SELECT uuid FROM users WHERE uuid = %s"
+        values = (friend_id,)
+        cursor.execute(sql, values)
+        friend = cursor.fetchone()
+
+        if not friend or not friend[0]:
+            cursor.close()
+            return jsonify({
+                "type": "fail", 
+                "reason": "friend does not exist"
+            }), 400
+
+        # Get user's friend list
+        sql = "SELECT friends FROM users WHERE uuid = %s FOR UPDATE"
+        values = (user_id,)
+        cursor.execute(sql, values)
+        user = cursor.fetchone()
+
+        if not user:
+            cursor.close()
+            return jsonify({
+                "type": "fail", 
+                "reason": "wrong user id"
+            }), 500
+
+        friends_list = user[0]
+        if friend_id in friends_list:
+            cursor.close()
+            return jsonify({
+                "type": "fail", 
+                "reason": "user is already your friend"
+            }), 400
+
+
+        # Add friend to user's friend list
+        if friends_list:
+            friends_list.append(friend_id)
+        else:
+            friends_list = [friend_id]
+
+        sql = "UPDATE users SET friends = %s WHERE uuid = %s"
+        values = (friends_list, user_id)
+        cursor.execute(sql, values)
+        conn.commit()
+        cursor.close()
+
+        return jsonify({"type": "success"}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/get_friends', methods=['POST'])
+@cross_origin()
+def get_friends():
+    session_id = request.json['session_id']
+
+    if not session_id:
+        return jsonify({"type": "fail", "reason": "missing session id"}), 400
+    try:
+        cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
+        sql = "SELECT user_id FROM sessions WHERE session_id = %s"
+        values = (session_id,)
+        cursor.execute(sql, values)
+        session = cursor.fetchone()
+
+        if not session:
+            cursor.close()
+            return jsonify({
+                "type": "fail", 
+                "reason": "wrong session id"
+            }), 401
+
+        user_id = session[0]
+
+        # Get user's friend list
+        sql = "SELECT friends FROM users WHERE uuid = %s"
+        values = (user_id,)
+        cursor.execute(sql, values)
+        user = cursor.fetchone()
+
+        if not user:
+            cursor.close()
+            return jsonify({
+                "type": "fail", 
+                "reason": "wrong user id"
+            }), 500
+
+        friends_list = user[0]
+        str_friends_list = '\", \"'.join(friends_list)
+
+        sql = "SELECT uuid, username, avatar FROM users WHERE uuid IN (%s)"
+        values = (str_friends_list,)
+        cursor.execute(sql, values)
+        friends = cursor.fetchall()
+        cursor.close()
+
+        data = []
+        for friend in friends:
+            data.append({
+                "id": friend[0],
+                "username": friend[1],
+                "avatar": friend[2]
+            })
+
+        return jsonify({
+            "type": "success",
+            "friends": data
         }), 200
 
     except Exception as e:
