@@ -5,13 +5,15 @@ info:
   description: This is a documentation for the API for the game Sapper with microtransactions
   version: 1.0.0
 servers:
-- url: https://sapper-api.onrender.com
+  - url: https://sapper-api.onrender.com
 paths:
   "/health":
     get:
       summary: Check API health
+      tags:
+        - general
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
@@ -21,10 +23,10 @@ paths:
                   response:
                     type: string
                     enum:
-                    - ok
+                      - ok
                   timing:
                     type: string
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -34,10 +36,12 @@ paths:
                   response:
                     type: string
                     enum:
-                    - db error
+                      - db error
   "/login":
     post:
       summary: User login
+      tags:
+        - general
       requestBody:
         required: true
         content:
@@ -50,10 +54,10 @@ paths:
                 password:
                   type: string
               required:
-              - email
-              - password
+                - email
+                - password
       responses:
-        '200':
+        "200":
           description: Successful login
           content:
             application/json:
@@ -75,8 +79,8 @@ paths:
                   type:
                     type: string
                     enum:
-                    - success
-        '500':
+                      - success
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -88,6 +92,8 @@ paths:
   "/register":
     post:
       summary: User registration
+      tags:
+        - general
       requestBody:
         required: true
         content:
@@ -102,11 +108,11 @@ paths:
                 password:
                   type: string
               required:
-              - email
-              - username
-              - password
+                - email
+                - username
+                - password
       responses:
-        '200':
+        "200":
           description: Successful registration
           content:
             application/json:
@@ -120,8 +126,8 @@ paths:
                   type:
                     type: string
                     enum:
-                    - success
-        '400':
+                      - success
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -131,10 +137,10 @@ paths:
                   type:
                     type: string
                     enum:
-                    - fail
+                      - fail
                   reason:
                     type: string
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -146,6 +152,8 @@ paths:
   "/logout":
     post:
       summary: User logout
+      tags:
+        - general
       requestBody:
         required: true
         content:
@@ -156,9 +164,9 @@ paths:
                 session_id:
                   type: string
               required:
-              - session_id
+                - session_id
       responses:
-        '200':
+        "200":
           description: Successful logout
           content:
             application/json:
@@ -168,8 +176,8 @@ paths:
                   type:
                     type: string
                     enum:
-                    - success
-        '500':
+                      - success
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -181,14 +189,16 @@ paths:
   "/get_user_id":
     get:
       summary: Get user ID
+      tags:
+        - general
       parameters:
-      - name: session_id
-        in: query
-        required: true
-        schema:
-          type: string
+        - name: session_id
+          in: query
+          required: true
+          schema:
+            type: string
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
@@ -198,10 +208,10 @@ paths:
                   type:
                     type: string
                     enum:
-                    - success
+                      - success
                   id:
                     type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -211,10 +221,10 @@ paths:
                   type:
                     type: string
                     enum:
-                    - fail
+                      - fail
                   reason:
                     type: string
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -226,6 +236,9 @@ paths:
   "/get_balance":
     post:
       summary: Get user balance
+      tags:
+        - shop
+        - general
       requestBody:
         required: true
         content:
@@ -236,9 +249,9 @@ paths:
                 session_id:
                   type: string
               required:
-              - session_id
+                - session_id
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
@@ -248,12 +261,12 @@ paths:
                   type:
                     type: string
                     enum:
-                    - success
+                      - success
                   coins:
                     type: integer
                   gems:
                     type: integer
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -263,10 +276,10 @@ paths:
                   type:
                     type: string
                     enum:
-                    - fail
+                      - fail
                   reason:
                     type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -276,10 +289,10 @@ paths:
                   type:
                     type: string
                     enum:
-                    - fail
+                      - fail
                   reason:
                     type: string
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -291,6 +304,9 @@ paths:
   "/get_xp":
     post:
       summary: Get user xp and battlepass xp
+      tags:
+        - shop
+        - general
       requestBody:
         required: true
         content:
@@ -301,9 +317,9 @@ paths:
                 session_id:
                   type: string
               required:
-              - session_id
+                - session_id
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
@@ -313,12 +329,12 @@ paths:
                   type:
                     type: string
                     enum:
-                    - success
+                      - success
                   xp:
                     type: integer
                   battlepass_xp:
                     type: integer
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -328,10 +344,10 @@ paths:
                   type:
                     type: string
                     enum:
-                    - fail
+                      - fail
                   reason:
                     type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -341,10 +357,10 @@ paths:
                   type:
                     type: string
                     enum:
-                    - fail
+                      - fail
                   reason:
                     type: string
-        '404':
+        "404":
           description: User Not Found
           content:
             application/json:
@@ -354,10 +370,10 @@ paths:
                   type:
                     type: string
                     enum:
-                    - fail
+                      - fail
                   reason:
                     type: string
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -369,8 +385,11 @@ paths:
   "/get_all_skins":
     get:
       summary: Get all available skins
+      tags:
+        - shop
+        - skins
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
@@ -385,7 +404,7 @@ paths:
                       type: integer
                     price_gems:
                       type: integer
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -397,6 +416,9 @@ paths:
   "/get_user_skins":
     post:
       summary: Get user skins
+      tags:
+        - shop
+        - skins
       requestBody:
         required: true
         content:
@@ -407,9 +429,9 @@ paths:
                 session_id:
                   type: string
               required:
-              - session_id
+                - session_id
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
@@ -420,7 +442,7 @@ paths:
                     type: array
                     items:
                       type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -433,7 +455,7 @@ paths:
                   reason:
                     type: string
                     example: wrong session id
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -445,6 +467,9 @@ paths:
   "/buy_skin":
     post:
       summary: Buy skin
+      tags:
+        - shop
+        - skins
       requestBody:
         required: true
         content:
@@ -459,14 +484,14 @@ paths:
                 currency:
                   type: string
                   enum:
-                  - coins
-                  - gems
+                    - coins
+                    - gems
               required:
-              - session_id
-              - skin_id
-              - currency
+                - session_id
+                - skin_id
+                - currency
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
@@ -479,11 +504,11 @@ paths:
                   currency:
                     type: string
                     enum:
-                    - coins
-                    - gems
+                      - coins
+                      - gems
                   new_balance:
                     type: number
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -496,7 +521,7 @@ paths:
                   reason:
                     type: string
                     example: missing parameters
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -509,7 +534,7 @@ paths:
                   reason:
                     type: string
                     example: wrong session id
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -521,6 +546,9 @@ paths:
   "/buy_gems":
     post:
       summary: Buy gems
+      tags:
+        - shop
+        - currency
       requestBody:
         required: true
         content:
@@ -533,10 +561,10 @@ paths:
                 gemsQuantity:
                   type: integer
               required:
-              - session_id
-              - gemsQuantity
+                - session_id
+                - gemsQuantity
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
@@ -548,7 +576,7 @@ paths:
                     example: success
                   new_balance:
                     type: number
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -561,7 +589,7 @@ paths:
                   reason:
                     type: string
                     example: missing parameters
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -574,7 +602,7 @@ paths:
                   reason:
                     type: string
                     example: wrong session id
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -586,6 +614,9 @@ paths:
   "/buy_battlepass":
     post:
       summary: Buy battle pass
+      tags:
+        - shop
+        - battlepass
       requestBody:
         required: true
         content:
@@ -596,9 +627,9 @@ paths:
                 session_id:
                   type: string
               required:
-              - session_id
+                - session_id
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
@@ -610,7 +641,7 @@ paths:
                     example: success
                   new_balance:
                     type: number
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -623,7 +654,7 @@ paths:
                   reason:
                     type: string
                     example: not logged in
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -636,7 +667,7 @@ paths:
                   reason:
                     type: string
                     example: wrong session id
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -648,6 +679,9 @@ paths:
   "/battlepass_status":
     post:
       summary: Get battle pass status
+      tags:
+        - shop
+        - battlepass
       requestBody:
         required: true
         content:
@@ -658,9 +692,9 @@ paths:
                 session_id:
                   type: string
               required:
-              - session_id
+                - session_id
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
@@ -672,8 +706,8 @@ paths:
                     example: success
                   owned:
                     type: string
-                    example: 'true'
-        '400':
+                    example: "true"
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -686,7 +720,7 @@ paths:
                   reason:
                     type: string
                     example: not logged in
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -699,7 +733,7 @@ paths:
                   reason:
                     type: string
                     example: wrong session id
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -711,6 +745,9 @@ paths:
   "/get_booster_count":
     post:
       summary: Get user's booster count
+      tags:
+        - shop
+        - boosters
       requestBody:
         required: true
         content:
@@ -721,9 +758,9 @@ paths:
                 session_id:
                   type: string
               required:
-              - session_id
+                - session_id
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
@@ -736,7 +773,7 @@ paths:
                   booster_count:
                     type: integer
                     example: 3
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -749,7 +786,7 @@ paths:
                   reason:
                     type: string
                     example: not logged in
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -762,7 +799,7 @@ paths:
                   reason:
                     type: string
                     example: wrong session id
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -774,6 +811,9 @@ paths:
   "/buy_booster":
     post:
       summary: Buy a booster
+      tags:
+        - shop
+        - boosters
       requestBody:
         required: true
         content:
@@ -786,13 +826,13 @@ paths:
                 currency:
                   type: string
                   enum:
-                  - coins
-                  - gems
+                    - coins
+                    - gems
               required:
-              - session_id
-              - currency
+                - session_id
+                - currency
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
@@ -808,13 +848,13 @@ paths:
                   currency:
                     type: string
                     enum:
-                    - coins
-                    - gems
+                      - coins
+                      - gems
                     example: coins
                   booster_count:
                     type: integer
                     example: 3
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -827,7 +867,7 @@ paths:
                   reason:
                     type: string
                     example: missing parameters
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -840,7 +880,7 @@ paths:
                   reason:
                     type: string
                     example: wrong session id
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -852,6 +892,9 @@ paths:
   "/set_avatar":
     post:
       summary: Set user's avatar
+      tags:
+        - shop
+        - avatars
       requestBody:
         required: true
         content:
@@ -864,10 +907,10 @@ paths:
                 avatar_id:
                   type: integer
               required:
-              - session_id
-              - avatar_id
+                - session_id
+                - avatar_id
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
@@ -877,7 +920,7 @@ paths:
                   type:
                     type: string
                     example: success
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -890,7 +933,7 @@ paths:
                   reason:
                     type: string
                     example: missing parameters
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -903,7 +946,7 @@ paths:
                   reason:
                     type: string
                     example: wrong session id
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -915,6 +958,9 @@ paths:
   "/get_avatar":
     post:
       summary: Get user's avatar
+      tags:
+        - shop
+        - avatars
       requestBody:
         required: true
         content:
@@ -925,9 +971,9 @@ paths:
                 session_id:
                   type: string
               required:
-              - session_id
+                - session_id
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
@@ -939,7 +985,7 @@ paths:
                     example: success
                   avatar_id:
                     type: integer
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -952,7 +998,7 @@ paths:
                   reason:
                     type: string
                     example: missing parameters
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -965,7 +1011,7 @@ paths:
                   reason:
                     type: string
                     example: wrong session id
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -977,6 +1023,9 @@ paths:
   "/get_user_avatars":
     post:
       summary: Get user's owned avatars
+      tags:
+        - shop
+        - avatars
       requestBody:
         required: true
         content:
@@ -987,9 +1036,9 @@ paths:
                 session_id:
                   type: string
               required:
-              - session_id
+                - session_id
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
@@ -1003,7 +1052,7 @@ paths:
                     type: array
                     items:
                       type: integer
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -1016,7 +1065,7 @@ paths:
                   reason:
                     type: string
                     example: missing parameters
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -1029,7 +1078,7 @@ paths:
                   reason:
                     type: string
                     example: wrong session id
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -1041,6 +1090,8 @@ paths:
   "/click_tile":
     post:
       summary: Click a tile in the game
+      tags:
+        - game
       requestBody:
         required: true
         content:
@@ -1053,10 +1104,10 @@ paths:
                 tile_id:
                   type: integer
               required:
-              - session_id
-              - tile_id
+                - session_id
+                - tile_id
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
@@ -1071,18 +1122,18 @@ paths:
                     additionalProperties:
                       type: integer
                       enum:
-                      - -1
-                      - 0
-                      - 1
-                      - 2
-                      - 3
-                      - 4
-                      - 5
-                      - 6
-                      - 7
-                      - 8
-                      - 9
-                      - 10
+                        - -1
+                        - 0
+                        - 1
+                        - 2
+                        - 3
+                        - 4
+                        - 5
+                        - 6
+                        - 7
+                        - 8
+                        - 9
+                        - 10
                   xp:
                     type: integer
                   added_xp:
@@ -1098,9 +1149,9 @@ paths:
                   battlepass_reward:
                     type: string
                     enum:
-                    - 'true'
-                    - 'false'
-        '400':
+                      - "true"
+                      - "false"
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -1115,7 +1166,7 @@ paths:
                     example: tile already clicked
                   board:
                     type: object
-        '404':
+        "404":
           description: Not Found
           content:
             application/json:
@@ -1130,7 +1181,7 @@ paths:
                     example: tile not found
                   board:
                     type: object
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -1142,6 +1193,8 @@ paths:
   "/create_game":
     post:
       summary: Create a new game
+      tags:
+        - game
       requestBody:
         required: true
         content:
@@ -1158,23 +1211,23 @@ paths:
                 difficulty:
                   type: string
                   enum:
-                  - '1'
-                  - '2'
-                  - '3'
-                  - '4'
+                    - "1"
+                    - "2"
+                    - "3"
+                    - "4"
                 booster_used:
                   type: integer
                   enum:
-                  - 0
-                  - 1
+                    - 0
+                    - 1
               required:
-              - session_id
-              - size_x
-              - size_y
-              - difficulty
-              - booster_used
+                - session_id
+                - size_x
+                - size_y
+                - difficulty
+                - booster_used
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
@@ -1184,7 +1237,7 @@ paths:
                   type:
                     type: string
                     example: success
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -1197,7 +1250,7 @@ paths:
                   reason:
                     type: string
                     example: wrong session id
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
@@ -1206,3 +1259,12 @@ paths:
                 properties:
                   error:
                     type: string
+tags:
+  - name: general
+  - name: shop
+  - name: skins
+  - name: currency
+  - name: battlepass
+  - name: boosters
+  - name: avatars
+  - name: game
