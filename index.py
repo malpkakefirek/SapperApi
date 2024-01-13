@@ -595,7 +595,14 @@ def get_friends():
                 "reason": "wrong user id"
             }), 500
 
-        str_friends_list = user[0].strip("\{\}")
+        # Convert string array to a string like this: "'val1','val2','val3'"
+        str_friends_list = str(user[0].strip("\{\}").split(',')).strip("[]")
+
+        if str_friends_list == "''":
+            return jsonify({
+                "type": "success",
+                "friends": []
+            }), 200
 
         sql = f"SELECT uuid, username, avatar FROM users WHERE uuid IN ({str_friends_list})"
         cursor.execute(sql)
