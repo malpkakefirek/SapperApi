@@ -1342,54 +1342,6 @@ def click_tile():
         cursor.close()
         return jsonify({'error': str(e)}), 500
 
-@app.route('/debug_game_creation')
-def debug_game_creation():
-    game_board = create_game_board(50, 50, 400)
-    game_data = {
-        id: {'value': value, 'hidden': True} 
-        for id, value in enumerate(game_board)
-    }
-    result = {
-        id: data['value'] if not data['hidden'] else -1
-        for id, data in game_data.items()
-    }
-    return jsonify(result), 200
-
-@app.route('/debug_calculate/<size>')
-def debug_calculate(size):
-    size = int(size)
-    result = {}
-    for mines in range(0, size*size, max(int(size/10),1)):
-        result[f"{size}x{size} - {mines} mines"] = calculate_xp(mines,size*size)
-    return jsonify(result), 200
-
-
-# @app.route('/retrieve_levels', methods=['POST'])
-# @cross_origin()
-# def retrieve_levels():
-#     # Retrieve player   level, xp, max_xp, battlepass_level, battlepass_xp, max_battlepass_xp
-#     session_id = request.json['session_id']
-#     try:
-#         cursor = conn.cursor()
-#         sql = "SELECT user_id FROM sessions WHERE session_id = %s"
-#         values = (session_id,)
-#         cursor.execute(sql, values)
-#         row = cursor.fetchone()
-
-#         if not row:
-#             cursor.close()
-#             return jsonify({"type": "fail", "reason": "wrong session id"}), 401
-
-#         sql = "SELECT xp,bp_xp FROM users WHERE ... = %s"
-#         values = (session_id,)
-#         cursor.execute(sql, values)
-#         row = cursor.fetchone()
-
-    
-#     except Exception as e:
-#         cursor.close()
-#         return jsonify({'error': str(e)}), 500
-
 @app.route('/create_game', methods=['POST'])
 @cross_origin()
 def create_game():
