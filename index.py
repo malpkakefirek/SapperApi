@@ -654,7 +654,7 @@ def search_users():
 
         sql = "SELECT uuid, username, avatar FROM users WHERE username ~* %s AND uuid !~* %s"
         values = (query, user_id)
-        cursor.execute(sql)
+        cursor.execute(sql, value)
         friends = cursor.fetchall()
         cursor.close()
 
