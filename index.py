@@ -554,7 +554,6 @@ def add_friend():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
 @app.route('/get_friends', methods=['POST'])
 @cross_origin()
 def get_friends():
@@ -625,6 +624,55 @@ def get_friends():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/search_users', methods=['POST'])
+@cross_origin()
+def search_users():
+    session_id = request.json['session_id']
+    query = request.json['query']
+
+    if not session_id or not query:
+        return jsonify({"type": "fail", "reason": "missing parameters"}), 400
+    try:
+        cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
+        sql = "SELECT user_id FROM sessions WHERE session_id = %s"
+        values = (session_id,)
+        cursor.execute(sql, values)
+        session = cursor.fetchone()
+
+        if not session:
+            cursor.close()
+            return jsonify({
+                "type": "fail", 
+                "reason": "wrong session id"
+            }), 401
+
+        user_id = session[0]
+
+        sql = "SELECT uuid, username, avatar FROM users WHERE username ~* %s AND uuid !~* %s"
+        values = (query, user_id)
+        cursor.execute(sql)
+        friends = cursor.fetchall()
+        cursor.close()
+
+        data = []
+        for friend in friends:
+            data.append({
+                "id": friend[0],
+                "username": friend[1],
+                "avatar": friend[2]
+            })
+
+        return jsonify({
+            "type": "success",
+            "users": data
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # SHOP ENDPOINTS
 # general
