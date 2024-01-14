@@ -74,8 +74,8 @@ battlepass_rewards = {
     "40": {"type": "avatar", "id": 9},
 } 
 
-# FUNCTIONS
 
+# FUNCTIONS
 def create_game_board(size_x, size_y, mine_count):
     # Create empty board
     board = [0] * size_x * size_y
@@ -204,8 +204,8 @@ def get_battlepass_lvl(battlepass_xp):
         expRequired += expIncrementAmount
     return currentLevel
 
-# ROUTES
 
+# ROUTES
 @app.route('/')
 def index():
     return "This is only an api! If you want to access the game, go to <a href=\"https://sapper.malpkakefirek.repl.co/\">https://sapper.malpkakefirek.repl.co</a>"
@@ -1005,6 +1005,7 @@ def buy_skin():
         }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 # currency
 @app.route('/buy_gems', methods=['POST'])
