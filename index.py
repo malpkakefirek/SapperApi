@@ -240,7 +240,7 @@ def health():
         else:
             timing2 = time()-start2
             data = {
-                'response': 'db error'
+                'error': 'db error'
             }
             cursor.close()
             return jsonify(data), 500
@@ -310,7 +310,7 @@ def login():
         cursor.close()
     
         if not session:
-            return jsonify({"type":"fail", "reason":"unknown error"}), 500
+            return jsonify({"error":"unknown db error"}), 500
     
         print(f"new session_id {session[0]} for user {email} with uuid {uuid}")
         return jsonify({
@@ -390,7 +390,7 @@ def register():
         
         if not user:
             cursor.close()
-            return jsonify({"type":"fail", "reason":"unknown error"}), 500
+            return jsonify({"error":"unknown db error"}), 500
         print(f"created account {user[0]} with email {user[1]}")
         
         sql = "with rows as (INSERT INTO sessions (user_id) VALUES (%s) RETURNING session_id) SELECT session_id FROM rows"
@@ -400,7 +400,7 @@ def register():
         cursor.close()
     
         if not session:
-            return jsonify({"type":"fail", "reason":"unknown error"}), 500
+            return jsonify({"error":"unknown db error"}), 500
     
         print(f"and session_id {session[0]}")
         return jsonify({
@@ -523,8 +523,7 @@ def add_friend():
         if not user:
             cursor.close()
             return jsonify({
-                "type": "fail", 
-                "reason": "wrong user id"
+                "error": "failed to fetch user from database"
             }), 500
 
         str_friends_list = user[0].strip("\{\}")
@@ -590,10 +589,7 @@ def remove_friend():
 
         if not user:
             cursor.close()
-            return jsonify({
-                "type": "fail", 
-                "reason": "wrong user id"
-            }), 500
+            return jsonify({"error": "unknown db error"}), 500
 
         str_friends_list = user[0].strip("\{\}")
         friends_list = str_friends_list.split(',')
@@ -657,10 +653,7 @@ def get_friends():
 
         if not user:
             cursor.close()
-            return jsonify({
-                "type": "fail", 
-                "reason": "wrong user id"
-            }), 500
+            return jsonify({"error": "unknown db error"}), 500
 
         # Convert string array to a string like this: "'val1','val2','val3'"
         str_friends_list = str(user[0].strip("\{\}").split(',')).strip("[]")
@@ -1531,7 +1524,7 @@ def click_tile():
                 "type": "fail", 
                 "reason": "unknown tile value",
                 "board": sanitize_game_data(game_data)
-            }), 500
+            }), 400
 
         game_data['tiles'] = tiles
         
@@ -1544,10 +1537,7 @@ def click_tile():
 
             if not user:
                 cursor.close()
-                return jsonify({
-                    "type": "fail", 
-                    "reason": "unknown error fetching user"
-                }), 500
+                return jsonify({"error": "unknown db error"}), 500
             
             # If battlepass active, add multiplier
             bp_multiplier = 0
