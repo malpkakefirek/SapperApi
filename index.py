@@ -1674,8 +1674,8 @@ def click_tile():
 
             # Add statistics
             statistics['games_played'] += 1
-            seconds_played = round(time() - start_time, 2) if start_time != -1 else -1
-            statistics['seconds_played'] += seconds_played
+            miliseconds_played = int((time() - start_time)*100) if start_time != -1 else -1
+            statistics['miliseconds_played'] += miliseconds_played
 
             sql = "UPDATE users SET statistics = %s WHERE uuid = %s"
             values = (statistics, user_id)
@@ -1689,7 +1689,7 @@ def click_tile():
             return jsonify({
                 "type": "loss", 
                 "board": uncover_all_tiles(game_data),
-                "seconds_played": seconds_played
+                "miliseconds_played": miliseconds_played
             }), 200
 
         # Uncover tiles, because a number tile got clicked
@@ -1721,8 +1721,8 @@ def click_tile():
             # Add statistics
             statistics['games_won'] += 1
             statistics['games_played'] += 1
-            seconds_played = round(time() - start_time, 2) if start_time != -1 else -1
-            statistics['seconds_played'] += seconds_played
+            miliseconds_played = int((time() - start_time)*100) if start_time != -1 else -1
+            statistics['miliseconds_played'] += miliseconds_played
 
             # If battlepass active, add multiplier
             bp_multiplier = 0
@@ -1816,7 +1816,7 @@ def click_tile():
                 "battlepass_xp": user_battlepass_xp,
                 "added_battlepass_xp": added_battlepass_xp,
                 "battlepass_reward": bp_reward,
-                "seconds_played": seconds_played
+                "miliseconds_played": miliseconds_played
             })
             return result, 200
 
@@ -1835,7 +1835,7 @@ def click_tile():
         cursor.close()
         
         result = {
-            'type': "playing",
+            "type": "playing",
             "board": sanitize_game_data(game_data)
         }
         if start_time:
