@@ -309,6 +309,86 @@ paths:
                 properties:
                   error:
                     type: string
+  "/get_statistics":
+    post:
+      summary: Get information about yourself
+      tags:
+        - general
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                session_id:
+                  type: string
+              required:
+                - session_id
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    enum:
+                      - success
+                  username:
+                    type: string
+                  avatar:
+                    type: integer
+                  xp:
+                    type: integer
+                  statistics:
+                    type: object
+                    additionalProperties:
+                      games_played:
+                        type: integer
+                      games_won:
+                        type: integer
+                      miliseconds_played:
+                        type: integer
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    enum:
+                      - fail
+                  reason:
+                    type: string
+                    example: missing session id
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    enum:
+                      - fail
+                  reason:
+                    type: string
+                    example: wrong session id
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
   "/add_friend":
     post:
       summary: Add a user to your friends list
