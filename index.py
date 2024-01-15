@@ -1678,7 +1678,7 @@ def click_tile():
             statistics['miliseconds_played'] += miliseconds_played
 
             sql = "UPDATE users SET statistics = %s WHERE uuid = %s"
-            values = (statistics, user_id)
+            values = (json.dumps(statistics), user_id)
             cursor.execute(sql, values)
             conn.commit()
             cursor.close()
@@ -1752,7 +1752,7 @@ def click_tile():
                      WHERE uuid = %s \
                      RETURNING xp, bp_xp, coins \
                    ) SELECT xp, bp_xp, coins FROM row"
-            values = (added_coins, added_xp, added_battlepass_xp, statistics, user_id)
+            values = (added_coins, added_xp, added_battlepass_xp, json.dumps(statistics), user_id)
             cursor.execute(sql, values)
             conn.commit()
             user = cursor.fetchone()
@@ -1822,7 +1822,7 @@ def click_tile():
 
         # Update statistics
         sql = "UPDATE users SET statistics = %s WHERE uuid = %s"
-        values = (statistics, user_id)
+        values = (json.dumps(statistics), user_id)
         cursor.execute(sql, values)
         conn.commit()
         cursor.close()
