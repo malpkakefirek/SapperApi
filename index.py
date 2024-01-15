@@ -622,7 +622,7 @@ def get_statistics():
             "username": user[0],
             "avatar": user[1],
             "xp": user[2],
-            "statistics": user[3]
+            "statistics": json.loads(user[3])
         }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -929,7 +929,7 @@ def user_info():
             "username": user[0],
             "avatar": user[1],
             "xp": user[2],
-            "statistics": user[3]
+            "statistics": json.loads(user[3])
         }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
