@@ -240,13 +240,13 @@ def health():
         else:
             timing2 = time()-start2
             data = {
-                'error': 'db error'
+                "error": 'db error'
             }
             cursor.close()
             return jsonify(data), 500
     except Exception as e:
         cursor.close()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -324,7 +324,7 @@ def login():
         }), 200
     except Exception as e:
         cursor.close()
-        return jsonify({'error': str(e)}), 500    
+        return jsonify({"error": str(e)}), 500    
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -410,7 +410,7 @@ def register():
         }), 200
     except Exception as e:
         cursor.close()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/logout', methods=['POST'])
 def logout():
@@ -437,7 +437,7 @@ def logout():
         return jsonify({"type":"success"}), 200
     except Exception as e:
         cursor.close()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/change_password', methods=['POST'])
 def change_password():
@@ -544,7 +544,7 @@ def change_password():
         }), 200
     except Exception as e:
         cursor.close()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/get_user_id')
 @cross_origin()
@@ -576,7 +576,7 @@ def get_user_id():
         }), 200
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
 # FRIEND ENDPOINTS
@@ -658,7 +658,7 @@ def add_friend():
         return jsonify({"type": "success"}), 200
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/remove_friend', methods=['POST'])
 @cross_origin()
@@ -723,7 +723,7 @@ def remove_friend():
         return jsonify({"type": "success"}), 200
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/get_friends', methods=['POST'])
 @cross_origin()
@@ -790,7 +790,7 @@ def get_friends():
         }), 200
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/search_users', methods=['POST'])
 @cross_origin()
@@ -840,7 +840,7 @@ def search_users():
         }), 200
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/user_info', methods=['POST'])
 @cross_origin()
@@ -882,7 +882,7 @@ def user_info():
             "xp": user[2]
         }), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
 # SHOP ENDPOINTS
@@ -926,7 +926,7 @@ def get_balance():
             "gems": user[1]
         }), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/get_xp', methods=['POST'])
 @cross_origin()
@@ -967,7 +967,7 @@ def get_xp():
             "battlepass_xp": user[1]
         }), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
 # skins
@@ -999,7 +999,7 @@ def get_all_skins():
             }
         return jsonify(data), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/get_user_skins', methods=['POST'])
 @cross_origin()
@@ -1033,7 +1033,7 @@ def get_user_skins():
         user_skins = user[0]
         return jsonify({"ids": user_skins}), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/buy_skin', methods=['POST'])
 @cross_origin()
@@ -1111,7 +1111,7 @@ def buy_skin():
             "new_balance": user_balance - skin_price
         }), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
 # currency
@@ -1154,7 +1154,7 @@ def buy_gems():
             "new_balance": gems
         }), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
 # battlepass
@@ -1241,7 +1241,7 @@ def buy_battlepass():
             "new_balance": gems
         }), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/battlepass_status', methods=['POST'])
 @cross_origin()
@@ -1282,7 +1282,7 @@ def battlepass_status():
             "owned": owns_battlepass
         }), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
 # boosters
@@ -1325,7 +1325,7 @@ def get_booster_count():
             "booster_count": booster_count
         }), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/buy_booster', methods=['POST'])
 @cross_origin()
@@ -1393,7 +1393,7 @@ def buy_booster():
             "booster_count": booster_count
         }), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
 # avatars
@@ -1444,7 +1444,7 @@ def set_avatar():
 
         return jsonify({"type": "success"}), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/get_avatar', methods=['POST'])
 @cross_origin()
@@ -1485,7 +1485,7 @@ def get_avatar():
             "avatar_id": avatar_id
         }), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/get_user_avatars', methods=['POST'])
 @cross_origin()
@@ -1526,7 +1526,7 @@ def get_user_avatars():
             "owned_avatars": owned_avatars
         }), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
 # GAME ENDPOINTS
@@ -1753,7 +1753,7 @@ def click_tile():
         return jsonify(result), 200
     except Exception as e:
         cursor.close()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/create_game', methods=['POST'])
 @cross_origin()
@@ -1850,4 +1850,4 @@ def create_game():
         return jsonify({"type": "success"}), 200
     except Exception as e:
         cursor.close()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
