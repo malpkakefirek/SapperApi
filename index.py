@@ -1665,13 +1665,6 @@ def click_tile():
 
         # Loss condition
         if tiles[tile_id]['value'] == 9:
-            # Delete game from database in another thread
-            thread = Thread(
-                target=delete_game_from_database, 
-                kwargs={'session_id': session_id}
-            )
-            thread.start()
-
             # Add statistics
             statistics['games_played'] += 1
             miliseconds_played = int((time() - start_time)*100) if start_time != -1 else -1
@@ -1681,7 +1674,13 @@ def click_tile():
             values = (json.dumps(statistics), user_id)
             cursor.execute(sql, values)
             conn.commit()
-            cursor.close()
+
+            # Delete game from database in another thread
+            thread = Thread(
+                target=delete_game_from_database, 
+                kwargs={'session_id': session_id}
+            )
+            thread.start()
 
             tiles[tile_id]['value'] = 10 # Blow up mine visually
             tiles[tile_id]['hidden'] = False
@@ -1825,7 +1824,6 @@ def click_tile():
         values = (json.dumps(statistics), user_id)
         cursor.execute(sql, values)
         conn.commit()
-        cursor.close()
 
         # Update game state in database
         sql = "UPDATE games SET data = %s WHERE game_id = %s"
