@@ -204,10 +204,13 @@ paths:
                   type: string
                 new_password:
                   type: string
+                confirm_new_password:
+                  type: string
               required:
                 - session_id
                 - old_password
                 - new_password
+                - confirm_new_password
       responses:
         "200":
           description: Successful password change
@@ -1586,6 +1589,8 @@ paths:
                     enum:
                       - "true"
                       - "false"
+                  seconds_played:
+                    type: integer
         "400":
           description: Bad Request
           content:

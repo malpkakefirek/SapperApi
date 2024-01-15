@@ -455,6 +455,13 @@ def change_password():
             "reason":"invalid password length"
         }), 400
 
+    confirm_new_password = request.form['confirm_new_password']
+    if confirm_new_password != new_password:
+        return jsonify({
+            "type":"fail", 
+            "reason":"passwords do not match"
+        }), 400
+
     new_password = request.form['new_password']
     if len(new_password) < 8 or len(new_password) > 64:
         return jsonify({
@@ -1553,7 +1560,7 @@ def click_tile():
 
         user_id = session[0]
         
-        sql = "SELECT data FROM games WHERE game_id = %s"
+        sql = "SELECT data, extract(epoch from start_time)::integer FROM games WHERE game_id = %s"
         values = (session_id,)
         cursor.execute(sql, values)
         game = cursor.fetchone()
@@ -1572,15 +1579,15 @@ def click_tile():
             return
         
         game_data = json.loads(game[0])
-
-        start_time = False
-        if not game_data['timer_started']:
+        timer_started = game_data['timer_started']
+        start_time = game[1] if timer_started else -1
+        if not timer_started:
             game_data['timer_started'] = True
-            sql = "WITH row AS (UPDATE games SET data = %s, start_time = NOW() WHERE game_id = %s RETURNING start_time) SELECT extract(epoch from start_time)::integer FROM row"
+            timer_started = True
+            sql = "UPDATE games SET data = %s, start_time = NOW() WHERE game_id = %s"
             values = (json.dumps(game_data), session_id)
             cursor.execute(sql, values)
             conn.commit()
-            start_time = cursor.fetchone()[0]
         
         tiles = game_data['tiles']
         
@@ -1616,9 +1623,11 @@ def click_tile():
             tiles[tile_id]['value'] = 10 # Blow up mine visually
             tiles[tile_id]['hidden'] = False
             game_data['tiles'] = tiles
+            seconds_played = time() - start_time if start_time != -1 else -1
             return jsonify({
-                'type': "loss", 
-                'board': uncover_all_tiles(game_data)
+                "type": "loss", 
+                "board": uncover_all_tiles(game_data),
+                "seconds_played": seconds_played
             }), 200
 
         # Uncover tiles, because a number tile got clicked
@@ -1724,6 +1733,7 @@ def click_tile():
             thread.start()
 
             board = sanitize_game_data(game_data)
+            seconds_played = time() - start_time if start_time != -1 else -1
             result = jsonify({
                 "type": "win", 
                 "board": board,
@@ -1733,7 +1743,8 @@ def click_tile():
                 "added_coins": added_coins,
                 "battlepass_xp": user_battlepass_xp,
                 "added_battlepass_xp": added_battlepass_xp,
-                "battlepass_reward": bp_reward
+                "battlepass_reward": bp_reward,
+                "seconds_played": seconds_played
             })
             return result, 200
 
