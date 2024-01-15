@@ -439,6 +439,113 @@ def logout():
         cursor.close()
         return jsonify({'error': str(e)}), 500
 
+@app.route('/change_password', methods=['POST'])
+def change_password():
+    session_id = request.form['session_id']
+    if not session_id:
+        return jsonify({
+            "type":"fail", 
+            "reason": "missing session id"
+        }), 400
+    
+    old_password = request.form['old_password']
+    if len(old_password) < 8 or len(old_password) > 64:
+        return jsonify({
+            "type":"fail", 
+            "reason":"invalid password length"
+        }), 400
+
+    new_password = request.form['new_password']
+    if len(new_password) < 8 or len(new_password) > 64:
+        return jsonify({
+            "type":"fail", 
+            "reason":"invalid password length"
+        }), 400
+
+
+    try:
+        cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
+        sql = "SELECT user_id FROM sessions WHERE session_id = %s FOR UPDATE"
+        values = (session_id,)
+        cursor.execute(sql, values)
+        session = cursor.fetchone()
+
+        if not session:
+            cursor.close()
+            return jsonify({
+                "type": "fail", 
+                "reason": "wrong session id"
+            }), 401
+
+        user_id = session[0]
+        sql = "SELECT password_hash, salt FROM users WHERE uuid = %s FOR UPDATE"
+        values = (user_id, )
+        cursor.execute(sql, values)
+        user = cursor.fetchone()
+    
+        if not user:
+            cursor.close()
+            return jsonify({"error":"unknown db error"}), 500
+    
+        db_hash = BitArray(bin=user[0]).bytes
+        db_salt = BitArray(bin=user[1]).bytes
+        
+        old_password_hash = pbkdf2_hmac(
+            encoding, 
+            old_password.encode('utf-8'), 
+            db_salt, 
+            iterations
+        )
+        
+        if db_hash != old_password_hash:
+            cursor.close()
+            return jsonify({"type":"fail", "reason":"old password is incorrect"}), 401
+
+        # Password is correct. Now change the password
+        new_salt = os.urandom(64)
+        new_password_hash = pbkdf2_hmac(
+            encoding, 
+            new_password.encode('utf-8'), 
+            salt, 
+            iterations
+        )
+    
+        # Update password and hash in db
+        sql = "UPDATE users SET \
+                 password_hash = right(%s::text, -1)::bit(512), \
+                 salt = right(%s::text, -1)::bit(512) \
+               WHERE uuid = %s"
+        values = (new_password_hash, new_salt, user_id)
+        cursor.execute(sql, values)
+        
+        # Delete all existing sessions for user
+        sql = "DELETE FROM sessions WHERE user_id = %s"
+        values = (user_id, )
+        cursor.execute(sql, values)
+
+        # Add a new session (renew old one)
+        sql = "WITH rows AS (INSERT INTO sessions (user_id) VALUES (%s) RETURNING session_id) SELECT session_id FROM rows"
+        values = (user_id, )
+        cursor.execute(sql, values)
+        conn.commit()
+        session = cursor.fetchone()
+        cursor.close()
+
+        if not session:
+            return jsonify({"error":"unknown db error"}), 500
+    
+        return jsonify({
+            "type": "success", 
+            "session_id": session[0]
+        }), 200
+    except Exception as e:
+        cursor.close()
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/get_user_id')
 @cross_origin()
 def get_user_id():
