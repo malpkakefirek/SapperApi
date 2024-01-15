@@ -1557,9 +1557,9 @@ def click_tile():
                 game_data['size_x'] * game_data['size_y']
             )
 
-            added_coins = base_xp * (1 + boost_multiplier)
-            added_xp = base_xp * (1 + boost_multiplier)
-            added_battlepass_xp = base_xp * (1 + boost_multiplier + bp_multiplier)
+            added_coins = int(base_xp * (1 + boost_multiplier))
+            added_xp = int(base_xp * (1 + boost_multiplier))
+            added_battlepass_xp = int(base_xp * (1 + boost_multiplier + bp_multiplier))
 
             # Add XP, Battlepass XP and coins
             sql = "WITH row AS (UPDATE users SET coins = coins+%s, xp = xp+%s, bp_xp = bp_xp+%s WHERE uuid = %s RETURNING xp, bp_xp, coins) SELECT xp, bp_xp, coins FROM row"
