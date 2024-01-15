@@ -3,7 +3,7 @@ openapi: 3.0.0
 info:
   title: Sapper API
   description: This is a documentation for the API for the game Sapper with microtransactions
-  version: 1.0.0
+  version: 1.1.0
 servers:
   - url: https://sapper-api.onrender.com
 paths:
@@ -351,6 +351,8 @@ paths:
                       games_won:
                         type: integer
                       miliseconds_played:
+                        type: integer
+                      tiles_clicked:
                         type: integer
         "400":
           description: Bad Request
@@ -714,6 +716,17 @@ paths:
                     type: integer
                   xp:
                     type: integer
+                  statistics:
+                    type: object
+                    additionalProperties:
+                      games_played:
+                        type: integer
+                      games_won:
+                        type: integer
+                      miliseconds_played:
+                        type: integer
+                      tiles_clicked:
+                        type: integer
         "400":
           description: Bad Request
           content:
