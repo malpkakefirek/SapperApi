@@ -608,8 +608,9 @@ def get_statistics():
             cursor.close()
             return jsonify({"type": "fail", "reason": "wrong session id"}), 401
 
+        user_id = session[0]
         sql = "SELECT username, avatar, xp, statistics FROM users WHERE uuid = %s"
-        values = (friend_id, )
+        values = (user_id, )
         cursor.execute(sql, values)
         user = cursor.fetchone()
         cursor.close()
