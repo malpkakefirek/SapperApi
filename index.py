@@ -1623,7 +1623,7 @@ def click_tile():
             tiles[tile_id]['value'] = 10 # Blow up mine visually
             tiles[tile_id]['hidden'] = False
             game_data['tiles'] = tiles
-            seconds_played = time() - start_time if start_time != -1 else -1
+            seconds_played = round(time() - start_time, 2) if start_time != -1 else -1
             return jsonify({
                 "type": "loss", 
                 "board": uncover_all_tiles(game_data),
@@ -1733,7 +1733,7 @@ def click_tile():
             thread.start()
 
             board = sanitize_game_data(game_data)
-            seconds_played = time() - start_time if start_time != -1 else -1
+            seconds_played = round(time() - start_time, 2) if start_time != -1 else -1
             result = jsonify({
                 "type": "win", 
                 "board": board,
