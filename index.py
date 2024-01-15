@@ -249,6 +249,7 @@ def health():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/login', methods=['POST'])
+@cross_origin()
 def login():
     print("got login request!")
     # session_id = request.form['session_id']
@@ -327,6 +328,7 @@ def login():
         return jsonify({"error": str(e)}), 500    
 
 @app.route('/register', methods=['POST'])
+@cross_origin()
 def register():
     print("got register request!")
     # session_id = request.form['session_id']
@@ -413,6 +415,7 @@ def register():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/logout', methods=['POST'])
+@cross_origin()
 def logout():
     print("got logout request!")
     session_id = request.json['session_id']
@@ -440,6 +443,7 @@ def logout():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/change_password', methods=['POST'])
+@cross_origin()
 def change_password():
     session_id = request.form['session_id']
     if not session_id:
