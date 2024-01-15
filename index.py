@@ -585,6 +585,48 @@ def get_user_id():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/get_statistics', methods=['POST'])
+@cross_origin()
+def get_statistics():
+    session_id = request.json['session_id']
+    
+    if not session_id:
+        return jsonify({"type": "fail", "reason": "missing session id"}), 400
+
+    try:
+        cursor = conn.cursor()
+    except:
+        conn = connect()
+        cursor = conn.cursor()
+    try:
+        sql = "SELECT user_id FROM sessions WHERE session_id = %s"
+        values = (session_id,)
+        cursor.execute(sql, values)
+        session = cursor.fetchone()
+
+        if not session:
+            cursor.close()
+            return jsonify({"type": "fail", "reason": "wrong session id"}), 401
+
+        sql = "SELECT username, avatar, xp, statistics FROM users WHERE uuid = %s"
+        values = (friend_id, )
+        cursor.execute(sql, values)
+        user = cursor.fetchone()
+        cursor.close()
+
+        if not user:
+            return jsonify({"type": "fail", "reason": "user doesn't exist"}), 400
+        
+        return jsonify({
+            "type": "success",
+            "username": user[0],
+            "avatar": user[1],
+            "xp": user[2],
+            "statistics": user[3]
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 # FRIEND ENDPOINTS
 @app.route('/add_friend', methods=['POST'])
@@ -873,7 +915,7 @@ def user_info():
             cursor.close()
             return jsonify({"type": "fail", "reason": "wrong session id"}), 401
 
-        sql = "SELECT username, avatar, xp FROM users WHERE uuid = %s"
+        sql = "SELECT username, avatar, xp, statistics FROM users WHERE uuid = %s"
         values = (friend_id, )
         cursor.execute(sql, values)
         user = cursor.fetchone()
@@ -886,7 +928,8 @@ def user_info():
             "type": "success",
             "username": user[0],
             "avatar": user[1],
-            "xp": user[2]
+            "xp": user[2],
+            "statistics": user[3]
         }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -1559,6 +1602,17 @@ def click_tile():
             return jsonify({"type": "fail", "reason": "wrong session id"}), 401
 
         user_id = session[0]
+        sql = "SELECT statistics FROM users WHERE uuid = %s FOR UPDATE"
+        values = (user_id,)
+        cursor.execute(sql, values)
+        user_stats = cursor.fetchone()
+
+        if not user_stats:
+            cursor.close()
+            return jsonify({"error": "unknown db error"}), 500
+
+        statistics = json.loads(user_stats[0])
+        statistics['tiles_clicked'] += 1
         
         sql = "SELECT data, extract(epoch from start_time)::integer FROM games WHERE game_id = %s"
         values = (session_id,)
@@ -1611,8 +1665,6 @@ def click_tile():
 
         # Loss condition
         if tiles[tile_id]['value'] == 9:
-            cursor.close()
-            
             # Delete game from database in another thread
             thread = Thread(
                 target=delete_game_from_database, 
@@ -1620,10 +1672,20 @@ def click_tile():
             )
             thread.start()
 
+            # Add statistics
+            statistics['games_played'] += 1
+            seconds_played = round(time() - start_time, 2) if start_time != -1 else -1
+            statistics['seconds_played'] += seconds_played
+
+            sql = "UPDATE users SET statistics = %s WHERE uuid = %s"
+            values = (statistics, user_id)
+            cursor.execute(sql, values)
+            conn.commit()
+            cursor.close()
+
             tiles[tile_id]['value'] = 10 # Blow up mine visually
             tiles[tile_id]['hidden'] = False
             game_data['tiles'] = tiles
-            seconds_played = round(time() - start_time, 2) if start_time != -1 else -1
             return jsonify({
                 "type": "loss", 
                 "board": uncover_all_tiles(game_data),
@@ -1647,7 +1709,7 @@ def click_tile():
         
         # Win condition
         if count_hidden_tiles(tiles) == game_data['mine_count']:
-            sql = "SELECT owns_battlepass FROM users WHERE uuid = %s"
+            sql = "SELECT owns_battlepass, statistics FROM users WHERE uuid = %s FOR UPDATE"
             values = (user_id, )
             cursor.execute(sql, values)
             user = cursor.fetchone()
@@ -1656,6 +1718,12 @@ def click_tile():
                 cursor.close()
                 return jsonify({"error": "unknown db error"}), 500
             
+            # Add statistics
+            statistics['games_won'] += 1
+            statistics['games_played'] += 1
+            seconds_played = round(time() - start_time, 2) if start_time != -1 else -1
+            statistics['seconds_played'] += seconds_played
+
             # If battlepass active, add multiplier
             bp_multiplier = 0
             owns_battlepass = user[0]
@@ -1678,8 +1746,13 @@ def click_tile():
             added_battlepass_xp = int(base_xp * (1 + boost_multiplier + bp_multiplier))
 
             # Add XP, Battlepass XP and coins
-            sql = "WITH row AS (UPDATE users SET coins = coins+%s, xp = xp+%s, bp_xp = bp_xp+%s WHERE uuid = %s RETURNING xp, bp_xp, coins) SELECT xp, bp_xp, coins FROM row"
-            values = (added_coins, added_xp, added_battlepass_xp, user_id)
+            sql = "WITH row AS ( \
+                     UPDATE users \
+                     SET coins = coins+%s, xp = xp+%s, bp_xp = bp_xp+%s, statistics = %s \
+                     WHERE uuid = %s \
+                     RETURNING xp, bp_xp, coins \
+                   ) SELECT xp, bp_xp, coins FROM row"
+            values = (added_coins, added_xp, added_battlepass_xp, statistics, user_id)
             cursor.execute(sql, values)
             conn.commit()
             user = cursor.fetchone()
@@ -1733,7 +1806,6 @@ def click_tile():
             thread.start()
 
             board = sanitize_game_data(game_data)
-            seconds_played = round(time() - start_time, 2) if start_time != -1 else -1
             result = jsonify({
                 "type": "win", 
                 "board": board,
@@ -1747,6 +1819,13 @@ def click_tile():
                 "seconds_played": seconds_played
             })
             return result, 200
+
+        # Update statistics
+        sql = "UPDATE users SET statistics = %s WHERE uuid = %s"
+        values = (statistics, user_id)
+        cursor.execute(sql, values)
+        conn.commit()
+        cursor.close()
 
         # Update game state in database
         sql = "UPDATE games SET data = %s WHERE game_id = %s"
