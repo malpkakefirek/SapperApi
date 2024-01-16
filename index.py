@@ -164,13 +164,13 @@ def calculate_xp(mine_count, size):
     if mine_percentage < 0.1 or size < 100:
         return 0
 
-    if mine_percentage >= 0.5 and size >= 2500:
+    if mine_percentage >= 0.35 and size >= 2500:
         return 200
     
     difficulty_bonus_dict = {
-        0.2: 25,
-        0.3: 50,
-        0.5: 75
+        0.15: 25,
+        0.2: 50,
+        0.35: 75
     }
     for key, value in difficulty_bonus_dict.items():
         if mine_percentage < key:
@@ -1864,9 +1864,9 @@ def create_game():
     booster_used = bool(int(booster_used) == 1)
     difficulty_list = {
         '1': 0.1,
-        '2': 0.2,
-        '3': 0.3,
-        '4': 0.5
+        '2': 0.15,
+        '3': 0.2,
+        '4': 0.35
     }
     mine_count = ceil(difficulty_list[difficulty] * size_x * size_y)
 
