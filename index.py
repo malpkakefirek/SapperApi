@@ -1771,34 +1771,35 @@ def click_tile():
             bp_reward = "false"
             if new_battlepass_lvl > old_battlepass_lvl:
                 bp_reward = "true"
-                sql = "SELECT booster_count, owned_avatars, owned_skins \
-                       FROM users WHERE uuid = %s FOR UPDATE"
-                values = (user_id, )
-                cursor.execute(sql, values)
-                user = cursor.fetchone()
+                if owns_battlepass:
+                    sql = "SELECT booster_count, owned_avatars, owned_skins \
+                        FROM users WHERE uuid = %s FOR UPDATE"
+                    values = (user_id, )
+                    cursor.execute(sql, values)
+                    user = cursor.fetchone()
 
-                booster_count = user[0]
-                owned_avatars = user[1]
-                owned_skins = user[2]
+                    booster_count = user[0]
+                    owned_avatars = user[1]
+                    owned_skins = user[2]
 
-                for tier in range(max(old_battlepass_lvl, 1), new_battlepass_lvl+1):
-                    item = battlepass_rewards[str(tier)]
-                    if item['type'] == "booster":
-                        booster_count += item['count']
-                        continue
-                    if item['type'] == "avatar":
-                        owned_avatars.append(item['id'])
-                        continue
-                    if item['type'] == "skin":
-                        owned_skins.append(item['id'])
-                        continue
-                
-                sql = "UPDATE users \
-                       SET booster_count = %s, owned_avatars = %s, owned_skins = %s \
-                       WHERE uuid = %s"
-                values = (booster_count, owned_avatars, owned_skins, user_id)
-                cursor.execute(sql, values)
-                conn.commit()
+                    for tier in range(max(old_battlepass_lvl, 1), new_battlepass_lvl+1):
+                        item = battlepass_rewards[str(tier)]
+                        if item['type'] == "booster":
+                            booster_count += item['count']
+                            continue
+                        if item['type'] == "avatar":
+                            owned_avatars.append(item['id'])
+                            continue
+                        if item['type'] == "skin":
+                            owned_skins.append(item['id'])
+                            continue
+                    
+                    sql = "UPDATE users \
+                        SET booster_count = %s, owned_avatars = %s, owned_skins = %s \
+                        WHERE uuid = %s"
+                    values = (booster_count, owned_avatars, owned_skins, user_id)
+                    cursor.execute(sql, values)
+                    conn.commit()
 
             cursor.close()
 
