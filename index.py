@@ -459,13 +459,6 @@ def change_password():
             "reason":"invalid password length"
         }), 400
 
-    confirm_new_password = request.form['confirm_new_password']
-    if confirm_new_password != new_password:
-        return jsonify({
-            "type":"fail", 
-            "reason":"passwords do not match"
-        }), 400
-
     new_password = request.form['new_password']
     if len(new_password) < 8 or len(new_password) > 64:
         return jsonify({
@@ -473,6 +466,12 @@ def change_password():
             "reason":"invalid password length"
         }), 400
 
+    confirm_new_password = request.form['confirm_new_password']
+    if confirm_new_password != new_password:
+        return jsonify({
+            "type":"fail", 
+            "reason":"passwords do not match"
+        }), 400
 
     try:
         cursor = conn.cursor()
