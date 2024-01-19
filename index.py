@@ -520,7 +520,7 @@ def change_password():
         new_password_hash = pbkdf2_hmac(
             encoding, 
             new_password.encode('utf-8'), 
-            salt, 
+            new_salt, 
             iterations
         )
     
