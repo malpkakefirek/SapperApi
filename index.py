@@ -208,7 +208,7 @@ def get_battlepass_lvl(battlepass_xp):
 # ROUTES
 @app.route('/')
 def index():
-    return "This is only an api! If you want to access the game, go to <a href=\"https://sapper.malpkakefirek.repl.co/\">https://sapper.malpkakefirek.repl.co</a>"
+    return "This is only an api! If you want to access the game, go to <a href=\"https://sapper-zeta.vercel.app/\">https://sapper-zeta.vercel.app/</a>"
 
 @app.route('/health')
 @cross_origin()
