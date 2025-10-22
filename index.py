@@ -25,7 +25,7 @@ def connect():
         user='postgres.pdkykbuvuioybyhbsibu',
         password=os.environ['DB_PASSWORD'],
         host=os.environ['DB_HOST'],
-        port=6543
+        port=5432
     )
     return conn
 
