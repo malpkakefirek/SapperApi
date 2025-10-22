@@ -1587,19 +1587,25 @@ def get_user_avatars():
 @app.route('/click_tile', methods=['POST'])
 @cross_origin()
 def click_tile():
+    print(request.json)
     session_id = request.json['session_id']
+    print("1")
     tile_id = request.json['tile_id']
+    print("2")
 
     try:
         cursor = conn.cursor()
     except:
         conn = connect()
         cursor = conn.cursor()
+    print("3")
     try:
         sql = "SELECT user_id FROM sessions WHERE session_id = %s"
         values = (session_id,)
         cursor.execute(sql, values)
+        print("4")
         session = cursor.fetchone()
+        print("5")
     
         if not session:
             cursor.close()
@@ -1610,6 +1616,7 @@ def click_tile():
         values = (user_id,)
         cursor.execute(sql, values)
         user_stats = cursor.fetchone()
+        print("6")
 
         if not user_stats:
             cursor.close()
@@ -1617,11 +1624,13 @@ def click_tile():
 
         statistics = json.loads(user_stats[0])
         statistics['tiles_clicked'] += 1
+        print("7")
         
         sql = "SELECT data, extract(epoch from start_time)::integer FROM games WHERE game_id = %s"
         values = (session_id,)
         cursor.execute(sql, values)
         game = cursor.fetchone()
+        print("8")
     
         if not game:
             return jsonify({"type": "fail", "reason": "game not found"}), 404
@@ -1635,17 +1644,22 @@ def click_tile():
             conn.commit()
             cursor.close()
             return
-        
+
+        print("9")
         game_data = json.loads(game[0])
         timer_started = game_data['timer_started']
         start_time = game[1] if timer_started else -1
+        print("10")
         if not timer_started:
+            print("10A")
             game_data['timer_started'] = True
             timer_started = True
             sql = "UPDATE games SET data = %s, start_time = NOW() WHERE game_id = %s"
             values = (json.dumps(game_data), session_id)
             cursor.execute(sql, values)
+            print("10B")
             conn.commit()
+            print("10C")
         
         tiles = game_data['tiles']
         
@@ -1658,6 +1672,7 @@ def click_tile():
                 "board": sanitize_game_data(game_data)
             }), 404
 
+        print("11")
         # Already clicked (not hidden)
         if not tiles[tile_id]['hidden']:
             cursor.close()
@@ -1695,6 +1710,7 @@ def click_tile():
                 "miliseconds_played": miliseconds_played
             }), 200
 
+        print("12")
         # Uncover tiles, because a number tile got clicked
         if tiles[tile_id]['value'] in range(1, 9):
             tiles[tile_id]['hidden'] = False
@@ -1709,6 +1725,7 @@ def click_tile():
             }), 400
 
         game_data['tiles'] = tiles
+        print("13")
         
         # Win condition
         if count_hidden_tiles(tiles) == game_data['mine_count']:
@@ -1801,6 +1818,7 @@ def click_tile():
                     conn.commit()
 
             cursor.close()
+            print("14")
 
             # Delete game from database in another thread
             thread = Thread(
@@ -1809,7 +1827,9 @@ def click_tile():
             )
             thread.start()
 
+            print("15")
             board = sanitize_game_data(game_data)
+            print("16")
             result = jsonify({
                 "type": "win", 
                 "board": board,
@@ -1822,6 +1842,7 @@ def click_tile():
                 "battlepass_reward": bp_reward,
                 "miliseconds_played": miliseconds_played
             })
+            print("17")
             return result, 200
 
         # Update statistics
