@@ -236,20 +236,21 @@ def health():
             timing2 = time()-start2
             data = {
                 'response': 'ok',
-                'timing': f'{timing1}s | {timing2}s'
+                'timing': f'db conn + insert {timing1}s | db fetch {timing2}s'
             }
             cursor.close()
             return jsonify(data), 200
         else:
             timing2 = time()-start2
             data = {
-                "error": 'db error'
+                'error': 'db error',
+                'timing': f'db conn + insert {timing1}s | db fetch {timing2}s'
             }
             cursor.close()
             return jsonify(data), 500
     except Exception as e:
         cursor.close()
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/login', methods=['POST'])
 @cross_origin()
