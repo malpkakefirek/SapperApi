@@ -236,7 +236,7 @@ def health():
             timing2 = time()-start2
             data = {
                 'response': 'ok',
-                'timing': f'db conn + insert {timing1}s | db fetch {timing2}s'
+                'timing': f'db conn + insert {round(timing1, 2)}s | db fetch {round(timing2, 2)}s'
             }
             cursor.close()
             return jsonify(data), 200
@@ -244,7 +244,7 @@ def health():
             timing2 = time()-start2
             data = {
                 'error': 'db error',
-                'timing': f'db conn + insert {timing1}s | db fetch {timing2}s'
+                'timing': f'db conn + insert {round(timing1, 2)}s | db fetch {round(timing2, 2)}s'
             }
             cursor.close()
             return jsonify(data), 500
